@@ -15,7 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ?? throw new InvalidOperationException(
             "The connection string for the database is not configured."
         );
-    options.UseSqlServer(connectionString);
+    options.UseLazyLoadingProxies().UseSqlServer(connectionString);
 });
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
