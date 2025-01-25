@@ -37,7 +37,7 @@ namespace PersonalBudgetManager.Api.DataContext
                     .HasOne(e => e.User) // One-to-Many relationship
                     .WithMany(u => u.Categories) // User has many Categories
                     .HasForeignKey(e => e.UserId) // FK in Categories
-                    .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete
+                    .OnDelete(DeleteBehavior.Restrict); // Optional: Cascade restric
             });
 
             modelBuilder.Entity<Expense>(entity =>
@@ -61,7 +61,7 @@ namespace PersonalBudgetManager.Api.DataContext
                     .HasOne(e => e.Category)
                     .WithMany(c => c.Expenses)
                     .HasForeignKey(e => e.CategoryId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Income>(entity =>
@@ -85,7 +85,7 @@ namespace PersonalBudgetManager.Api.DataContext
                     .HasOne(e => e.Category)
                     .WithMany(c => c.Incomes)
                     .HasForeignKey(e => e.CategoryId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             base.OnModelCreating(modelBuilder);
