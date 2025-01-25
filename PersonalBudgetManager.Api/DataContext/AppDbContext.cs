@@ -7,6 +7,8 @@ namespace PersonalBudgetManager.Api.DataContext
     {
         DbSet<User> Users { get; set; }
         DbSet<Category> Categories { get; set; }
+        DbSet<Income> Incomes { get; set; }
+        DbSet<Expense> Expenses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,6 +38,54 @@ namespace PersonalBudgetManager.Api.DataContext
                     .WithMany(u => u.Categories) // User has many Categories
                     .HasForeignKey(e => e.UserId) // FK in Categories
                     .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete
+            });
+
+            modelBuilder.Entity<Expense>(entity =>
+            {
+                entity.ToTable("Expenses");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id).HasColumnName("ExpenseId");
+
+                entity.Property(e => e.Amount).HasColumnType("decimal(10,2)");
+
+                entity.Property(e => e.Description).HasMaxLength(255);
+
+                entity
+                    .HasOne(e => e.User)
+                    .WithMany(u => u.Expenses)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity
+                    .HasOne(e => e.Category)
+                    .WithMany(c => c.Expenses)
+                    .HasForeignKey(e => e.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Income>(entity =>
+            {
+                entity.ToTable("Incomes");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id).HasColumnName("IncomeId").ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Amount).HasColumnType("Decimal(10,2)");
+
+                entity.Property(e => e.Description).HasMaxLength(255);
+
+                entity
+                    .HasOne(e => e.User)
+                    .WithMany(u => u.Incomes)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity
+                    .HasOne(e => e.Category)
+                    .WithMany(c => c.Incomes)
+                    .HasForeignKey(e => e.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             base.OnModelCreating(modelBuilder);

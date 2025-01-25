@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 namespace PersonalBudgetManager.Api.DataContext.Entities
 {
     public class User
@@ -10,5 +8,9 @@ namespace PersonalBudgetManager.Api.DataContext.Entities
         public required string Salt { get; set; }
 
         public virtual ICollection<Category> Categories { get; set; } = []; //navigation property
+
+        public virtual ICollection<Income> Incomes { get; set; } = []; //navigation property
+
+        public virtual ICollection<Expense> Expenses { get; set; } = []; //navigation property
     }
 }

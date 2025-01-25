@@ -1,5 +1,3 @@
-using Microsoft.Identity.Client;
-
 namespace PersonalBudgetManager.Api.DataContext.Entities
 {
     public class Category
@@ -9,5 +7,7 @@ namespace PersonalBudgetManager.Api.DataContext.Entities
         public int UserId { get; set; }
 
         public virtual required User User { get; set; } //navigation property
+        public virtual ICollection<Income> Incomes { get; set; } = []; //navigation property
+        public virtual ICollection<Expense> Expenses { get; set; } = []; //navigation property
     }
 }
