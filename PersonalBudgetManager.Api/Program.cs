@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
+using PersonalBudgetManager.Api.DataContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,13 +29,25 @@ builder.WebHost.ConfigureKestrel(options =>
     );
 });
 
+//settiing https port to redirect http requests
+builder.Services.Configure<HttpsRedirectionOptions>(options =>
+{
+    options.HttpsPort = 443;
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddLogging();
 
-builder.Services.Configure<HttpsRedirectionOptions>(options =>
+// Adding dbcontext
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.HttpsPort = 443;
+    string connectionString =
+        Environment.GetEnvironmentVariable("PersonalBudgetManager_ConnectionString")
+        ?? throw new InvalidOperationException(
+            "The connection string for the database is not configured."
+        );
+    options.UseLazyLoadingProxies().UseSqlServer(connectionString);
 });
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
