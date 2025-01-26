@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /app 
 
 # Copy solution files and restore dependencies
 COPY ./*.sln ./
