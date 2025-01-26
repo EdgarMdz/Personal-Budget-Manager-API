@@ -8,6 +8,15 @@ namespace PersonalBudgetManager.Api.Repositories
         private readonly AppDbContext _appDbContext = appDbContext;
         private readonly Dictionary<Type, object> _repositories = [];
 
+        public async Task BeginTransactionAsync(CancellationToken token) =>
+            await _appDbContext.Database.BeginTransactionAsync(token);
+
+        public async Task CommitTransactionAsync(CancellationToken token) =>
+            await _appDbContext.Database.CommitTransactionAsync(token);
+
+        public async Task RollbackTransactionAsync(CancellationToken token) =>
+            await _appDbContext.Database.RollbackTransactionAsync(token);
+
         public void Dispose()
         {
             _appDbContext.Dispose();
