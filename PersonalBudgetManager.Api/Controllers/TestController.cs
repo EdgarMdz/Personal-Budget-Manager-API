@@ -11,7 +11,7 @@ namespace PersonalBudgetManager.Api.Controllers
         [Route("echo")]
         public IActionResult Echo(string message)
         {
-            _logger.LogInformation(message);
+            _logger.LogInformation("Echo message received: {Message}", message);
             return Ok(message);
         }
 
