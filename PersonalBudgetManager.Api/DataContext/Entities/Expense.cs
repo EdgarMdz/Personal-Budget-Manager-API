@@ -1,6 +1,6 @@
 namespace PersonalBudgetManager.Api.DataContext.Entities
 {
-    public class Expense
+    public class Expense : IEntity
     {
         public int Id { get; set; }
         public int UserId { get; set; }
