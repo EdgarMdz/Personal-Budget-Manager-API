@@ -17,6 +17,7 @@ namespace PersonalBudgetManager.Api.Controllers
             return Ok(message);
         }
 
+        [HttpGet]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

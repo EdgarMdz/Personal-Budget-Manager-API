@@ -5,6 +5,7 @@ using PersonalBudgetManager.Api.Repositories;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSwaggerGen();
 
 // Configure Kestrel to listen on both HTTP and HTTPS ports
 builder.WebHost.ConfigureKestrel(options =>
@@ -55,9 +56,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 //Adding unit of work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
 app.MapControllers();
@@ -65,7 +63,8 @@ app.MapControllers();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
