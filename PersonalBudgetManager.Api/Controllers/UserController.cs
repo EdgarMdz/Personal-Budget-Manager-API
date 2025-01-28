@@ -7,11 +7,9 @@ using PersonalBudgetManager.Api.Repositories.Interfaces;
 namespace PersonalBudgetManager.Api.Controllers
 {
     [Route("[controller]")]
-    public class UserController(ILogger<UserController> logger, IUnitOfWork unitOfWork) : Controller
+    public class UserController(ILogger<UserController> logger) : Controller
     {
         private readonly ILogger<UserController> _logger = logger;
-        private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly Repository<User> _userRepo = unitOfWork.GetRepository<User>();
 
         [HttpPost]
         [Route("RegisterUser")]

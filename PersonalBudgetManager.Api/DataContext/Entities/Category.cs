@@ -1,3 +1,5 @@
+using PersonalBudgetManager.Api.DataContext.Interfaces;
+
 namespace PersonalBudgetManager.Api.DataContext.Entities
 {
     public class Category : IEntity

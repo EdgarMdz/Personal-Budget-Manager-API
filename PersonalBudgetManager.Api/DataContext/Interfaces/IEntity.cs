@@ -1,4 +1,4 @@
-namespace PersonalBudgetManager.Api.DataContext
+namespace PersonalBudgetManager.Api.DataContext.Interfaces
 {
     public interface IEntity
     {

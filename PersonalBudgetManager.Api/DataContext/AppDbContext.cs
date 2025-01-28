@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.DataContext.Entities;
 
@@ -23,6 +24,12 @@ namespace PersonalBudgetManager.Api.DataContext
                 entity.Property(e => e.Salt).HasMaxLength(50);
 
                 entity.Property(e => e.Username).HasMaxLength(50);
+
+                entity
+                    .HasOne(e => e.Role)
+                    .WithMany(r => r.Users)
+                    .HasForeignKey(e => e.RoleId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -86,6 +93,15 @@ namespace PersonalBudgetManager.Api.DataContext
                     .WithMany(c => c.Incomes)
                     .HasForeignKey(e => e.CategoryId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<UserRole>(entity =>
+            {
+                entity.ToTable("UserRoles");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id).HasColumnName("UserRoleId").ValueGeneratedOnAdd();
+                entity.Property(e => e.Name).HasMaxLength(255);
             });
 
             base.OnModelCreating(modelBuilder);

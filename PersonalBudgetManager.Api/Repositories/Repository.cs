@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.DataContext;
+using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories
