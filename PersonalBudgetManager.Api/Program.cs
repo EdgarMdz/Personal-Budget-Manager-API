@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.Repositories;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
+using PersonalBudgetManager.Api.Services;
+using PersonalBudgetManager.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSwaggerGen();
@@ -53,8 +55,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseLazyLoadingProxies().UseSqlServer(connectionString);
 });
 
-//Adding unit of work
+//Adding services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
+builder.Services.AddSingleton<IJwtService, JwtService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 

@@ -9,7 +9,7 @@ namespace PersonalBudgetManager.Api.DataContext.Entities
         public required string PasswordHash { get; set; }
         public required string Salt { get; set; }
         public required int RoleId { get; set; }
-        public virtual required UserRole Role { get; set; } // navigation property
+        public virtual UserRole? Role { get; set; } // navigation property
         public virtual ICollection<Category> Categories { get; set; } = []; //navigation property
 
         public virtual ICollection<Income> Incomes { get; set; } = []; //navigation property

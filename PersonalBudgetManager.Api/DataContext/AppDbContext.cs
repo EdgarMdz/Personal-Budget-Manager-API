@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.DataContext.Entities;
 
@@ -10,6 +9,7 @@ namespace PersonalBudgetManager.Api.DataContext
         DbSet<Category> Categories { get; set; }
         DbSet<Income> Incomes { get; set; }
         DbSet<Expense> Expenses { get; set; }
+        DbSet<UserRole> UserRoles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
