@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using Humanizer;
+using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using PersonalBudgetManager.Api.Services.Interfaces;
 
 namespace PersonalBudgetManager.Api.Services
@@ -41,35 +41,38 @@ namespace PersonalBudgetManager.Api.Services
             return Convert.ToBase64String(saltBytes);
         }
 
-        public string Encrypt(int data)
+        public async Task<string> EncryptAsync(int data, CancellationToken token)
         {
             using var aesAlg = Aes.Create();
             var x = Encoding.UTF8.GetBytes(_secretKey);
             aesAlg.Key = x[..32];
             aesAlg.GenerateIV();
 
-            ICryptoTransform encriptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
 
             byte[] bytes = BitConverter.GetBytes(data);
-            using MemoryStream ms = new();
 
-            ms.Write(aesAlg.IV, 0, aesAlg.IV.Length);
+            var encryptedData = await PerformCryptography(bytes, aesAlg, encryptor, token);
 
-            using CryptoStream cryptoStream = new(ms, encriptor, CryptoStreamMode.Write);
-            cryptoStream.Write(bytes, 0, bytes.Length);
-            cryptoStream.FlushFinalBlock();
-            return Convert.ToBase64String(ms.ToArray());
+            return Convert.ToBase64String(encryptedData);
         }
 
-        private static byte[] PerformCryptography(byte[] data, ICryptoTransform encryptor)
+        private static async Task<byte[]> PerformCryptography(
+            byte[] data,
+            Aes aes,
+            ICryptoTransform encryptor,
+            CancellationToken token
+        )
         {
             using var ms = new MemoryStream();
+            ms.Write(aes.IV, 0, aes.IV.Length);
             using var cryptoStream = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
             cryptoStream.Write(data, 0, data.Length);
+            await cryptoStream.FlushFinalBlockAsync(token);
             return ms.ToArray();
         }
 
-        public string Decrypt(string encryptedData)
+        public async Task<string> DecryptAsync(string encryptedData, CancellationToken token)
         {
             var parts = encryptedData.Split(":");
             var iv = Convert.FromBase64String(parts[0]);
@@ -81,7 +84,7 @@ namespace PersonalBudgetManager.Api.Services
 
             //decrypting data
             using var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-            var decrypted = PerformCryptography(cipherText, decryptor);
+            var decrypted = await PerformCryptography(cipherText, aesAlg, decryptor, token);
             return Encoding.UTF8.GetString(decrypted);
         }
     }

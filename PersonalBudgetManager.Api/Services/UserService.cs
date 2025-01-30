@@ -27,7 +27,12 @@ namespace PersonalBudgetManager.Api.Services
             await _unitofWork.BeginTransactionAsync(token);
             try
             {
-                if (!int.TryParse(_encryptionHashService.Decrypt(user.RoleId), out int userRoleId))
+                if (
+                    !int.TryParse(
+                        await _encryptionHashService.DecryptAsync(user.RoleId, token),
+                        out int userRoleId
+                    )
+                )
                     throw new Exception("Invalid RoleId");
 
                 User newUser =
@@ -72,7 +77,7 @@ namespace PersonalBudgetManager.Api.Services
 
             foreach (var item in uiserRolesList)
             {
-                var encryptedId = _encryptionHashService.Encrypt(item.Id);
+                var encryptedId = await _encryptionHashService.EncryptAsync(item.Id, token);
                 userRolesDto.Add(new Models.UserRole() { Id = encryptedId, Name = item.Name });
             }
 
