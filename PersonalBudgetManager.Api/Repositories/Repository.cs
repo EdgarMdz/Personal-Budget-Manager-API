@@ -75,5 +75,8 @@ namespace PersonalBudgetManager.Api.Repositories
                 throw new Exception("An unexpected error occurred.", ex);
             }
         }
+
+        public Task<IEnumerable<T>> GetAllAsync(CancellationToken token) =>
+            PerformDatabaseOperation<IEnumerable<T>>(async () => await _dbSet.ToListAsync(token));
     }
 }

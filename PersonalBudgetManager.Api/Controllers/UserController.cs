@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.DataContext.Entities;
@@ -13,6 +14,14 @@ namespace PersonalBudgetManager.Api.Controllers
     {
         private readonly ILogger<UserController> _logger = logger;
         private readonly IUserService _userService = userService;
+
+        [HttpGet]
+        [Route("GetUserRoles")]
+        public async Task<IActionResult> GetUserRolesList()
+        {
+            var roles = await _userService.GetUserRoleList(CancellationToken.None);
+            return Ok(roles);
+        }
 
         [HttpPost]
         [Route("RegisterUser")]

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Humanizer;
 using PersonalBudgetManager.Api.Services.Interfaces;
 
 namespace PersonalBudgetManager.Api.Services
@@ -19,7 +20,7 @@ namespace PersonalBudgetManager.Api.Services
 
         public string HashString(string inputString, out string salt)
         {
-            salt = GenerateSalt();
+            salt = GenerateSalt(16);
             using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(salt));
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(inputString));
             return Convert.ToBase64String(computedHash);
@@ -32,26 +33,32 @@ namespace PersonalBudgetManager.Api.Services
             return string.Compare(Convert.ToBase64String(hashedInputPassword), hashedPassword) == 0;
         }
 
-        private static string GenerateSalt()
+        private static string GenerateSalt(int size)
         {
-            var saltBytes = new byte[16];
+            var saltBytes = new byte[size];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(saltBytes);
             return Convert.ToBase64String(saltBytes);
         }
 
-        public string Encrypt(string data)
+        public string Encrypt(int data)
         {
             using var aesAlg = Aes.Create();
-            aesAlg.Key = Encoding.UTF8.GetBytes(_secretKey);
+            var x = Encoding.UTF8.GetBytes(_secretKey);
+            aesAlg.Key = x[..32];
             aesAlg.GenerateIV();
 
-            using var encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-            var encrypted = PerformCryptography(Encoding.UTF8.GetBytes(data), encryptor);
-            var iv = Convert.ToBase64String(aesAlg.IV);
-            var encryptedData = Convert.ToBase64String(encrypted);
+            ICryptoTransform encriptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
 
-            return $"{iv}:{encrypted}"; // Return the IV along with the encrypted data
+            byte[] bytes = BitConverter.GetBytes(data);
+            using MemoryStream ms = new();
+
+            ms.Write(aesAlg.IV, 0, aesAlg.IV.Length);
+
+            using CryptoStream cryptoStream = new(ms, encriptor, CryptoStreamMode.Write);
+            cryptoStream.Write(bytes, 0, bytes.Length);
+            cryptoStream.FlushFinalBlock();
+            return Convert.ToBase64String(ms.ToArray());
         }
 
         private static byte[] PerformCryptography(byte[] data, ICryptoTransform encryptor)

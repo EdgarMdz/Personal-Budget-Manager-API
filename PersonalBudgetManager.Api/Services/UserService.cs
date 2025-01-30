@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
@@ -62,6 +61,22 @@ namespace PersonalBudgetManager.Api.Services
                 await _unitofWork.RollbackTransactionAsync(CancellationToken.None);
                 throw new Exception("An  exception occured", e);
             }
+        }
+
+        public async Task<IEnumerable<Models.UserRole>> GetUserRoleList(CancellationToken token)
+        {
+            var uiserRolesList = await _unitofWork
+                .GetRepository<DataContext.Entities.UserRole>()
+                .GetAllAsync(token);
+            List<Models.UserRole> userRolesDto = [];
+
+            foreach (var item in uiserRolesList)
+            {
+                var encryptedId = _encryptionHashService.Encrypt(item.Id);
+                userRolesDto.Add(new Models.UserRole() { Id = encryptedId, Name = item.Name });
+            }
+
+            return userRolesDto;
         }
     }
 }
