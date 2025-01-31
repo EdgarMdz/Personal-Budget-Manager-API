@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Services.Interfaces;
@@ -17,15 +18,18 @@ namespace PersonalBudgetManager.Api.Controllers
 
         [HttpGet]
         [Route("GetUserRoles")]
-        public async Task<IActionResult> GetUserRolesList()
+        public IActionResult GetUserRolesList()
         {
-            var roles = await _userService.GetUserRoleList(CancellationToken.None);
+            var roles = Enum.GetValues<Models.UserRole>()
+                .Cast<Models.UserRole>()
+                .Select(r => r.ToString())
+                .ToList();
             return Ok(roles);
         }
 
         [HttpPost]
         [Route("RegisterUser")]
-        public IActionResult CreateUser(UserDTO user, CancellationToken token)
+        public IActionResult CreateUser([FromQuery] UserDTO user, CancellationToken token)
         {
             if (user.UserName.Trim() == string.Empty)
                 return BadRequest("Username cannot be empty or whitespaces");

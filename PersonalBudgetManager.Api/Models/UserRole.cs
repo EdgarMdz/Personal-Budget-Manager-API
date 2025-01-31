@@ -1,8 +1,8 @@
 namespace PersonalBudgetManager.Api.Models
 {
-    public class UserRole
+    public enum UserRole
     {
-        public required string Id { get; set; }
-        public required string Name { get; set; }
+        Admin = 1,
+        General = 2,
     }
 }

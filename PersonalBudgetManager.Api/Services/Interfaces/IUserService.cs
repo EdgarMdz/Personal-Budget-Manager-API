@@ -7,6 +7,5 @@ namespace PersonalBudgetManager.Api.Services.Interfaces
     {
         Task<User> RegisterUser(UserDTO user, CancellationToken token);
         Task<string> Login(UserDTO user);
-        public Task<IEnumerable<Models.UserRole>> GetUserRoleList(CancellationToken token);
     }
 }

@@ -27,14 +27,6 @@ namespace PersonalBudgetManager.Api.Services
             await _unitofWork.BeginTransactionAsync(token);
             try
             {
-                if (
-                    !int.TryParse(
-                        await _encryptionHashService.DecryptAsync(user.RoleId, token),
-                        out int userRoleId
-                    )
-                )
-                    throw new Exception("Invalid RoleId");
-
                 User newUser =
                     await _unitofWork
                         .GetRepository<User>()
@@ -44,7 +36,6 @@ namespace PersonalBudgetManager.Api.Services
                                 Username = user.UserName,
                                 PasswordHash = hashedPassword,
                                 Salt = salt,
-                                RoleId = userRoleId,
                             },
                             token
                         ) ?? throw new Exception("Failed to insert new user");
@@ -66,22 +57,6 @@ namespace PersonalBudgetManager.Api.Services
                 await _unitofWork.RollbackTransactionAsync(CancellationToken.None);
                 throw new Exception("An  exception occured", e);
             }
-        }
-
-        public async Task<IEnumerable<Models.UserRole>> GetUserRoleList(CancellationToken token)
-        {
-            var uiserRolesList = await _unitofWork
-                .GetRepository<DataContext.Entities.UserRole>()
-                .GetAllAsync(token);
-            List<Models.UserRole> userRolesDto = [];
-
-            foreach (var item in uiserRolesList)
-            {
-                var encryptedId = await _encryptionHashService.EncryptAsync(item.Id, token);
-                userRolesDto.Add(new Models.UserRole() { Id = encryptedId, Name = item.Name });
-            }
-
-            return userRolesDto;
         }
     }
 }
