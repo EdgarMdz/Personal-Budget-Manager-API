@@ -11,17 +11,6 @@ namespace PersonalBudgetManager.Api.Controllers
         private readonly ILogger<UserController> _logger = logger;
         private readonly IUserService _userService = userService;
 
-        [HttpGet]
-        [Route("GetUserRoles")]
-        public IActionResult GetUserRolesList()
-        {
-            var roles = Enum.GetValues<Models.UserRole>()
-                .Cast<Models.UserRole>()
-                .Select(r => r.ToString())
-                .ToList();
-            return Ok(roles);
-        }
-
         [HttpPost]
         [Route("RegisterUser")]
         public async Task<IActionResult> CreateUser(UserDTO user, CancellationToken token)
