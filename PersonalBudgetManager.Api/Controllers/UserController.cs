@@ -1,9 +1,4 @@
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Services.Interfaces;
 
@@ -29,7 +24,7 @@ namespace PersonalBudgetManager.Api.Controllers
 
         [HttpPost]
         [Route("RegisterUser")]
-        public IActionResult CreateUser([FromQuery] UserDTO user, CancellationToken token)
+        public async Task<IActionResult> CreateUser(UserDTO user, CancellationToken token)
         {
             if (user.UserName.Trim() == string.Empty)
                 return BadRequest("Username cannot be empty or whitespaces");
@@ -61,8 +56,8 @@ namespace PersonalBudgetManager.Api.Controllers
                     "The password must contains at least one number, one capital letter and one spacial character"
                 );
 
-            _userService.RegisterUser(user, token);
-            return Ok();
+            var newUser = await _userService.RegisterUser(user, token);
+            return Ok(newUser);
         }
 
         [HttpGet]

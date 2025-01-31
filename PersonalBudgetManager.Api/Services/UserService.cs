@@ -40,6 +40,7 @@ namespace PersonalBudgetManager.Api.Services
                             token
                         ) ?? throw new Exception("Failed to insert new user");
 
+                await _unitofWork.SaveChangesAsync(token);
                 await _unitofWork.CommitTransactionAsync(token);
                 return newUser;
             }
