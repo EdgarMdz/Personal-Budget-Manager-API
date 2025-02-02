@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -77,11 +78,15 @@ namespace PersonalBudgetManager.Api.Controllers
             catch (Exception e)
             {
                 var incomeJson = JsonSerializer.Serialize(income);
-                _logger.LogError("{Message}\nIncome details: {IncomeJson}", e.Message, incomeJson);
+                var message = $"{e.Message}\nIncome details: {incomeJson}";
+                LogError(message);
 
                 return StatusCode(500, ErrorMessages.UnexpectedError);
             }
         }
+
+        private void LogError(string message, [CallerMemberName] string methodName = "") =>
+            _logger.LogError("Error at \"{MethodName}\": {Message}", methodName, message);
 
         [HttpGet]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
