@@ -33,35 +33,24 @@ namespace PersonalBudgetManager.Api.Services
             try
             {
                 User newUser =
-                    await _unitofWork
-                        .GetRepository<User>()
-                        .InsertAsync(
-                            new()
-                            {
-                                Name = user.UserName,
-                                PasswordHash = hashedPassword,
-                                Salt = salt,
-                            },
-                            token
-                        ) ?? throw new Exception("Failed to insert new user");
+                    await _repo.InsertAsync(
+                        new()
+                        {
+                            Name = user.UserName,
+                            PasswordHash = hashedPassword,
+                            Salt = salt,
+                        },
+                        token
+                    ) ?? throw new Exception("Failed to insert new user");
 
                 await _unitofWork.SaveChangesAsync(token);
                 await _unitofWork.CommitTransactionAsync(token);
                 return newUser;
             }
-            catch (OperationCanceledException e)
+            catch (Exception)
             {
                 await _unitofWork.RollbackTransactionAsync(CancellationToken.None);
-                throw new OperationCanceledException(
-                    "User requested to cancel the operation. Rollback performed",
-                    e,
-                    token
-                );
-            }
-            catch (Exception e)
-            {
-                await _unitofWork.RollbackTransactionAsync(CancellationToken.None);
-                throw new Exception("An  exception occured", e);
+                throw;
             }
         }
     }

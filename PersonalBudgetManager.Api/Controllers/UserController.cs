@@ -19,39 +19,37 @@ namespace PersonalBudgetManager.Api.Controllers
                 return BadRequest("Username cannot be empty or whitespaces");
 
             user.UserName = user.UserName.Trim();
-            if (await _userService.FindByName(user.UserName, token) != null)
-                return BadRequest("Choose a different user name");
-
-            if (user.Password.Trim() == string.Empty)
-                return BadRequest("password cannot be empty or whitespaces");
-
-            if (user.Password.Trim().Length < 8)
-                return BadRequest("the password must have a minimum of 8 characters");
-
-            bool hasNumbers = false;
-            bool hasCapitals = false;
-            bool hasSpecialCharacters = false;
-            foreach (char c in user.Password)
+            try
             {
-                if (char.IsDigit(c))
-                    hasNumbers = true;
-                if (char.IsLetter(c) && char.IsUpper(c))
-                    hasCapitals = true;
+                if (await _userService.FindByName(user.UserName, token) != null)
+                    return BadRequest("Choose a different user name");
 
-                if (!char.IsLetter(c) && !char.IsDigit(c))
-                    hasSpecialCharacters = true;
+                if (user.Password.Trim() == string.Empty)
+                    return BadRequest("password cannot be empty or whitespaces");
 
-                if (hasCapitals && hasNumbers && hasSpecialCharacters)
-                    break;
+                if (user.Password.Trim().Length < 8)
+                    return BadRequest("the password must have a minimum of 8 characters");
+
+                bool hasNumbers = user.Password.Any(char.IsDigit);
+                bool hasCapitals = user.Password.Any(char.IsUpper);
+                bool hasSpecialCharacters = user.Password.Any(c => !char.IsLetterOrDigit(c));
+
+                if (!hasNumbers || !hasCapitals || !hasSpecialCharacters)
+                    return BadRequest(
+                        "The password must contains at least one number, one capital letter and one spacial character"
+                    );
+
+                var newUser = await _userService.RegisterUser(user, token);
+                return Ok(newUser);
             }
-
-            if (!hasNumbers || !hasCapitals || !hasSpecialCharacters)
-                return BadRequest(
-                    "The password must contains at least one number, one capital letter and one spacial character"
-                );
-
-            var newUser = await _userService.RegisterUser(user, token);
-            return Ok(newUser);
+            catch (OperationCanceledException)
+            {
+                return StatusCode(449, "The request was canceled by the user");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An unexpected server error occurred.");
+            }
         }
 
         [HttpGet]
