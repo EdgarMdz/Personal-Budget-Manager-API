@@ -9,7 +9,6 @@ namespace PersonalBudgetManager.Api.DataContext
         DbSet<Category> Categories { get; set; }
         DbSet<Income> Incomes { get; set; }
         DbSet<Expense> Expenses { get; set; }
-        DbSet<UserRole> UserRoles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,13 +22,7 @@ namespace PersonalBudgetManager.Api.DataContext
 
                 entity.Property(e => e.Salt).HasMaxLength(50);
 
-                entity.Property(e => e.Username).HasMaxLength(50);
-
-                entity
-                    .HasOne(e => e.Role)
-                    .WithMany(r => r.Users)
-                    .HasForeignKey(e => e.RoleId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.Name).HasColumnName("Username").HasMaxLength(50);
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -93,15 +86,6 @@ namespace PersonalBudgetManager.Api.DataContext
                     .WithMany(c => c.Incomes)
                     .HasForeignKey(e => e.CategoryId)
                     .OnDelete(DeleteBehavior.SetNull);
-            });
-
-            modelBuilder.Entity<UserRole>(entity =>
-            {
-                entity.ToTable("UserRoles");
-                entity.HasKey(e => e.Id);
-
-                entity.Property(e => e.Id).HasColumnName("UserRoleId").ValueGeneratedOnAdd();
-                entity.Property(e => e.Name).HasMaxLength(255);
             });
 
             base.OnModelCreating(modelBuilder);

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+using System.Security.Authentication;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
@@ -16,9 +16,33 @@ namespace PersonalBudgetManager.Api.Services
         private readonly IEncryptionService _encryptionHashService = encryptionService;
         private readonly IUnitOfWork _unitofWork = unitOfWork;
 
-        public Task<string> Login(UserDTO user)
+        private readonly INameableRepository<User> _repo = unitOfWork.GetNameableRepository<User>();
+
+        public async Task<User?> FindByName(string userName, CancellationToken token) =>
+            await _repo.GetByNameAsync(userName, token);
+
+        public async Task<string> Login(UserDTO user, CancellationToken token)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var registeredUser = await _repo.GetByNameAsync(user.UserName, token);
+
+                if (
+                    registeredUser is null
+                    || !_encryptionHashService.CompareHashStrings(
+                        user.Password,
+                        registeredUser.PasswordHash,
+                        registeredUser.Salt
+                    )
+                )
+                    throw new InvalidCredentialException("User name or password are not valid. :/");
+
+                return _jwtService.GenerateToken(registeredUser);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<User> RegisterUser(UserDTO user, CancellationToken token)
@@ -28,39 +52,25 @@ namespace PersonalBudgetManager.Api.Services
             await _unitofWork.BeginTransactionAsync(token);
             try
             {
-                if (!int.TryParse(_encryptionHashService.Decrypt(user.RoleId), out int userRoleId))
-                    throw new Exception("Invalid RoleId");
-
                 User newUser =
-                    await _unitofWork
-                        .GetRepository<User>()
-                        .InsertAsync(
-                            new()
-                            {
-                                Username = user.UserName,
-                                PasswordHash = hashedPassword,
-                                Salt = salt,
-                                RoleId = userRoleId,
-                            },
-                            token
-                        ) ?? throw new Exception("Failed to insert new user");
+                    await _repo.InsertAsync(
+                        new()
+                        {
+                            Name = user.UserName,
+                            PasswordHash = hashedPassword,
+                            Salt = salt,
+                        },
+                        token
+                    ) ?? throw new Exception("Failed to insert new user");
 
+                await _unitofWork.SaveChangesAsync(token);
                 await _unitofWork.CommitTransactionAsync(token);
                 return newUser;
             }
-            catch (OperationCanceledException e)
+            catch (Exception)
             {
                 await _unitofWork.RollbackTransactionAsync(CancellationToken.None);
-                throw new OperationCanceledException(
-                    "User requested to cancel the operation. Rollback performed",
-                    e,
-                    token
-                );
-            }
-            catch (Exception e)
-            {
-                await _unitofWork.RollbackTransactionAsync(CancellationToken.None);
-                throw new Exception("An  exception occured", e);
+                throw;
             }
         }
     }

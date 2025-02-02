@@ -35,11 +35,7 @@ namespace PersonalBudgetManager.Api.Services
                     "Issuer not defined at JWT section in appsettings.json"
                 );
 
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role.Name),
-            };
+            var claims = new[] { new Claim(ClaimTypes.Name, user.Name) };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

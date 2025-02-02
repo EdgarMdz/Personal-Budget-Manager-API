@@ -39,43 +39,5 @@ namespace PersonalBudgetManager.Api.Services
             rng.GetBytes(saltBytes);
             return Convert.ToBase64String(saltBytes);
         }
-
-        public string Encrypt(string data)
-        {
-            using var aesAlg = Aes.Create();
-            aesAlg.Key = Encoding.UTF8.GetBytes(_secretKey);
-            aesAlg.GenerateIV();
-
-            using var encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-            var encrypted = PerformCryptography(Encoding.UTF8.GetBytes(data), encryptor);
-            var iv = Convert.ToBase64String(aesAlg.IV);
-            var encryptedData = Convert.ToBase64String(encrypted);
-
-            return $"{iv}:{encrypted}"; // Return the IV along with the encrypted data
-        }
-
-        private static byte[] PerformCryptography(byte[] data, ICryptoTransform encryptor)
-        {
-            using var ms = new MemoryStream();
-            using var cryptoStream = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
-            cryptoStream.Write(data, 0, data.Length);
-            return ms.ToArray();
-        }
-
-        public string Decrypt(string encryptedData)
-        {
-            var parts = encryptedData.Split(":");
-            var iv = Convert.FromBase64String(parts[0]);
-            var cipherText = Convert.FromBase64String(parts[1]);
-
-            using var aesAlg = Aes.Create();
-            aesAlg.Key = Encoding.UTF8.GetBytes(_secretKey);
-            aesAlg.IV = iv;
-
-            //decrypting data
-            using var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-            var decrypted = PerformCryptography(cipherText, decryptor);
-            return Encoding.UTF8.GetString(decrypted);
-        }
     }
 }

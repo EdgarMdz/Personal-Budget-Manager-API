@@ -45,21 +45,25 @@ builder.Services.AddControllers();
 builder.Services.AddLogging();
 
 // Adding dbcontext
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    string connectionString =
-        Environment.GetEnvironmentVariable("PersonalBudgetManager_ConnectionString")
-        ?? throw new InvalidOperationException(
-            "The connection string for the database is not configured."
-        );
-    options.UseLazyLoadingProxies().UseSqlServer(connectionString);
-});
+builder.Services.AddDbContext<AppDbContext>(
+    options =>
+    {
+        string connectionString =
+            Environment.GetEnvironmentVariable("PersonalBudgetManager_ConnectionString")
+            ?? throw new InvalidOperationException(
+                "The connection string for the database is not configured."
+            );
+
+        options.UseLazyLoadingProxies().UseSqlServer(connectionString);
+    },
+    ServiceLifetime.Singleton
+);
 
 //Adding services
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSingleton<IUserService, UserService>();
 
 var app = builder.Build();
 
