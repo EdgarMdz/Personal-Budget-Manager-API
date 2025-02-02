@@ -1,3 +1,5 @@
+using System.Security.Authentication;
+using Azure.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Services.Interfaces;
@@ -24,10 +26,10 @@ namespace PersonalBudgetManager.Api.Controllers
                 if (await _userService.FindByName(user.UserName, token) != null)
                     return BadRequest("Choose a different user name");
 
-                if (user.Password.Trim() == string.Empty)
+                if (string.IsNullOrWhiteSpace(user.Password))
                     return BadRequest("password cannot be empty or whitespaces");
 
-                if (user.Password.Trim().Length < 8)
+                if (user.Password.Length < 8)
                     return BadRequest("the password must have a minimum of 8 characters");
 
                 bool hasNumbers = user.Password.Any(char.IsDigit);
@@ -48,7 +50,36 @@ namespace PersonalBudgetManager.Api.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, "An unexpected server error occurred.");
+                return StatusCode(500, "An unexpected server error occurred. :(");
+            }
+        }
+
+        [HttpGet]
+        [Route("Login")]
+        public async Task<IActionResult> Login(UserDTO user, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(user.UserName))
+                return BadRequest("Provide a user name");
+
+            if (string.IsNullOrWhiteSpace(user.Password))
+                return BadRequest("Provide a password");
+
+            try
+            {
+                user.UserName = user.UserName.Trim();
+                return Ok(await _userService.Login(user, token));
+            }
+            catch (InvalidCredentialException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(449, "Operation canceled by the user");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An unexpected server error occurred. :(");
             }
         }
 

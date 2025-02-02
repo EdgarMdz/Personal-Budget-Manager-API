@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
@@ -20,9 +21,28 @@ namespace PersonalBudgetManager.Api.Services
         public async Task<User?> FindByName(string userName, CancellationToken token) =>
             await _repo.GetByNameAsync(userName, token);
 
-        public Task<string> Login(UserDTO user)
+        public async Task<string> Login(UserDTO user, CancellationToken token)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var registeredUser = await _repo.GetByNameAsync(user.UserName, token);
+
+                if (
+                    registeredUser is null
+                    || !_encryptionHashService.CompareHashStrings(
+                        user.Password,
+                        registeredUser.PasswordHash,
+                        registeredUser.Salt
+                    )
+                )
+                    throw new InvalidCredentialException("User name or password are not valid. :/");
+
+                return _jwtService.GenerateToken(registeredUser);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<User> RegisterUser(UserDTO user, CancellationToken token)
