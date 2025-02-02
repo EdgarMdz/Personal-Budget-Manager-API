@@ -1,5 +1,8 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.Repositories;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
@@ -40,6 +43,49 @@ builder.Services.Configure<HttpsRedirectionOptions>(options =>
     options.HttpsPort = 443;
 });
 
+//configuring JWT bearer
+builder
+    .Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        var secretKey =
+            Environment.GetEnvironmentVariable("PersonalBudgetManager_SecretKey")
+            ?? throw new InvalidOperationException(
+                "PersonalBudgetManager_SecretKey not defined in environment variables."
+            );
+
+        var jwtConfigurations =
+            builder.Configuration.GetSection("JWT")
+            ?? throw new InvalidOperationException("Section JWT not found in appsettings.json");
+
+        var issuer =
+            jwtConfigurations["Issuer"]
+            ?? throw new InvalidOperationException(
+                "Issuer not defined at JWT section in appsettings.json"
+            );
+
+        var audience =
+            jwtConfigurations["Audience"]
+            ?? throw new InvalidOperationException(
+                "Issuer not defined at JWT section in appsettings.json"
+            );
+        options.TokenValidationParameters =
+            new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = issuer,
+                ValidAudience = audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            };
+    });
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddLogging();
@@ -77,5 +123,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();
