@@ -73,17 +73,16 @@ builder
             ?? throw new InvalidOperationException(
                 "Issuer not defined at JWT section in appsettings.json"
             );
-        options.TokenValidationParameters =
-            new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = issuer,
-                ValidAudience = audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-            };
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        };
     });
 
 // Add services to the container.
@@ -107,9 +106,11 @@ builder.Services.AddDbContext<AppDbContext>(
 
 //Adding services
 builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
+builder.Services.AddSingleton<IIncomeRepository, IncomeRepository>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton<IIncomeService, IncomeService>();
 
 var app = builder.Build();
 

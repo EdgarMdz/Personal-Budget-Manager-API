@@ -4,6 +4,8 @@ namespace PersonalBudgetManager.Api.Repositories.Interfaces
 {
     public interface IUnitOfWork
     {
+        public IIncomeRepository IncomeRepository { get; }
+
         public Repository<T> GetRepository<T>()
             where T : class, IEntity;
         public NameableRepository<T> GetNameableRepository<T>()

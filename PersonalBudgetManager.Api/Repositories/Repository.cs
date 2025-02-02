@@ -8,7 +8,7 @@ namespace PersonalBudgetManager.Api.Repositories
     public class Repository<T>(AppDbContext context) : IRepository<T>
         where T : class, IEntity
     {
-        private readonly DbSet<T> _dbSet = context.Set<T>();
+        protected readonly DbSet<T> _dbSet = context.Set<T>();
 
         public async Task<T?> DeleteAsync(int id, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
