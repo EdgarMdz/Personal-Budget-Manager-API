@@ -57,7 +57,7 @@ namespace PersonalBudgetManager.Api.Services
                         Description = income.Description,
                         Date = income.Date,
                         Amount = income.Amount,
-                        Category = income.Category?.Name,
+                        Category = income.Category?.Name ?? "",
                     }
                 );
             }
