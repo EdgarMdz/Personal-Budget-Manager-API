@@ -42,7 +42,7 @@ namespace PersonalBudgetManager.Api.Controllers
                     );
 
                 var newUser = await _userService.RegisterUser(user, token);
-                return Ok(newUser);
+                return Ok("User successfully registered. :)");
             }
             catch (OperationCanceledException)
             {
