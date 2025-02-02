@@ -39,6 +39,21 @@ namespace PersonalBudgetManager.Api.Repositories
             }
         }
 
+        public NameableRepository<T> GetNameableRepository<T>()
+            where T : class, IEntity, IHasNameColumn
+        {
+            var repoType = typeof(T);
+
+            if (_repositories.TryGetValue(repoType, out object? value))
+                return (NameableRepository<T>)value;
+            else
+            {
+                NameableRepository<T> repo = new(_appDbContext);
+                _repositories.Add(repoType, repo);
+                return repo;
+            }
+        }
+
         public async Task<int> SaveChangesAsync(CancellationToken token) =>
             await _appDbContext.SaveChangesAsync(token);
     }

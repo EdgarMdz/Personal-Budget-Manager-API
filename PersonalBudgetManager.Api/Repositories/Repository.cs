@@ -48,7 +48,7 @@ namespace PersonalBudgetManager.Api.Repositories
             });
         }
 
-        private static async Task<TResult> PerformDatabaseOperation<TResult>(
+        protected static async Task<TResult> PerformDatabaseOperation<TResult>(
             Func<Task<TResult>> action
         )
         {

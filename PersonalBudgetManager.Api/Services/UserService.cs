@@ -33,7 +33,7 @@ namespace PersonalBudgetManager.Api.Services
                         .InsertAsync(
                             new()
                             {
-                                Username = user.UserName,
+                                Name = user.UserName,
                                 PasswordHash = hashedPassword,
                                 Salt = salt,
                             },

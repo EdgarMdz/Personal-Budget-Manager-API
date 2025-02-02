@@ -22,7 +22,7 @@ namespace PersonalBudgetManager.Api.DataContext
 
                 entity.Property(e => e.Salt).HasMaxLength(50);
 
-                entity.Property(e => e.Username).HasMaxLength(50);
+                entity.Property(e => e.Name).HasColumnName("Username").HasMaxLength(50);
             });
 
             modelBuilder.Entity<Category>(entity =>
