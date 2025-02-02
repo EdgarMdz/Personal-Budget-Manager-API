@@ -17,6 +17,11 @@ namespace PersonalBudgetManager.Api.Controllers
         {
             if (user.UserName.Trim() == string.Empty)
                 return BadRequest("Username cannot be empty or whitespaces");
+
+            user.UserName = user.UserName.Trim();
+            if (await _userService.FindByName(user.UserName, token) != null)
+                return BadRequest("Choose a different user name");
+
             if (user.Password.Trim() == string.Empty)
                 return BadRequest("password cannot be empty or whitespaces");
 

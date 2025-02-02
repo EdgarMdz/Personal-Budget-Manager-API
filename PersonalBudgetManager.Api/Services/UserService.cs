@@ -15,6 +15,11 @@ namespace PersonalBudgetManager.Api.Services
         private readonly IEncryptionService _encryptionHashService = encryptionService;
         private readonly IUnitOfWork _unitofWork = unitOfWork;
 
+        private readonly INameableRepository<User> _repo = unitOfWork.GetNameableRepository<User>();
+
+        public async Task<User?> FindByName(string userName, CancellationToken token) =>
+            await _repo.GetByNameAsync(userName, token);
+
         public Task<string> Login(UserDTO user)
         {
             throw new NotImplementedException();
