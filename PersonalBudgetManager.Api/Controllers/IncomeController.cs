@@ -55,21 +55,11 @@ namespace PersonalBudgetManager.Api.Controllers
                 if (string.IsNullOrWhiteSpace(income.Description))
                     return BadRequest("Add a description");
 
-                if (
-                    !user.Categories.Any(cat =>
-                        cat.Name.Equals(income.Category, StringComparison.CurrentCultureIgnoreCase)
-                    )
-                )
+                if (_userService.FindCategory(user, income.Category) is not Category category)
                     return BadRequest("The category is not registed yet.");
 
-                var categoryId = user
-                    .Categories.Where(c =>
-                        c.Name.Equals(income.Category, StringComparison.CurrentCultureIgnoreCase)
-                    )
-                    .First()
-                    .Id;
+                await _incomeService.AddIncome(income, category.Id, user.Id, token);
 
-                await _incomeService.AddIncome(income, categoryId, user.Id, token);
                 return Ok("Income added to the user. :)");
             }
             catch (OperationCanceledException)
