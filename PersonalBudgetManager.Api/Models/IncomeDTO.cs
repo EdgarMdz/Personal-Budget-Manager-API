@@ -1,14 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using PersonalBudgetManager.Api.Common;
 
 namespace PersonalBudgetManager.Api.Models
 {
     public class IncomeDTO
     {
-        [Range(
-            0.01,
-            double.MaxValue,
-            ErrorMessage = "The income must be a positive value greater than 0"
-        )]
+        [Range(0.01, double.MaxValue, ErrorMessage = ErrorMessages.InvalidIncomeValue)]
         public required decimal Amount { get; set; }
 
         [Required]

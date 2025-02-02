@@ -2,6 +2,8 @@ namespace PersonalBudgetManager.Api.Common
 {
     public static class ErrorMessages
     {
+        public const string InvalidIncomeValue =
+            "The income must be a positive value greater than 0.";
         public const string InvalidToken = "Not valid token.";
         public const string NotRegisteredCategory = "The category is not registed yet.";
         public const string OperationCanceled = "Operation canceled by the user";
