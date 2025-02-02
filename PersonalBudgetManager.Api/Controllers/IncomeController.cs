@@ -77,6 +77,7 @@ namespace PersonalBudgetManager.Api.Controllers
             catch (Exception e)
             {
                 var incomeJson = JsonSerializer.Serialize(income);
+                _logger.LogError("{Message}\nIncome details: {IncomeJson}", e.Message, incomeJson);
 
                 return StatusCode(500, ErrorMessages.UnexpectedError);
             }
