@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Services.Interfaces;
@@ -22,10 +23,10 @@ namespace PersonalBudgetManager.Api.Controllers
             var userClaims = HttpContext.User;
 
             if (userClaims.Identity?.Name is not string userName)
-                return BadRequest("Not valid token");
+                return BadRequest(ErrorMessages.InvalidToken);
 
             if (await _userService.FindByName(userName, token) is not User user)
-                return BadRequest("Operation not valid");
+                return BadRequest(ErrorMessages.UserNotFound);
 
             var incomes = await _incomeService.GetIncomes(user.Id, token);
             return Ok(incomes);
@@ -43,25 +44,25 @@ namespace PersonalBudgetManager.Api.Controllers
                 var userClaims = HttpContext.User;
 
                 if (userClaims.Identity?.Name is not string username)
-                    return BadRequest("Not valid token");
+                    return BadRequest(ErrorMessages.UserNotFound);
 
                 if (await _userService.FindByName(username, token) is not User user)
-                    return BadRequest("Operation not valid");
+                    return BadRequest(ErrorMessages.InvalidToken);
 
                 if (_userService.FindCategory(user, income.Category) is not Category category)
-                    return BadRequest("The category is not registed yet.");
+                    return BadRequest(ErrorMessages.NotRegisteredCategory);
 
                 await _incomeService.AddIncome(income, category.Id, user.Id, token);
 
-                return Ok("Income added to the user. :)");
+                return Ok("Income added to the user.");
             }
             catch (OperationCanceledException)
             {
-                return StatusCode(449, "Operation canceled by the user");
+                return StatusCode(449, ErrorMessages.OperationCanceled);
             }
             catch (Exception)
             {
-                return StatusCode(500, "An unexpected server error occurred. :(");
+                return StatusCode(500, ErrorMessages.UnexpectedError);
             }
         }
 
