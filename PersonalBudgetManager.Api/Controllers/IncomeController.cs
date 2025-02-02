@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Common;
@@ -9,9 +8,13 @@ using PersonalBudgetManager.Api.Services.Interfaces;
 namespace PersonalBudgetManager.Api.Controllers
 {
     [Route("[controller]")]
-    public class IncomeController(IUserService userService, IIncomeService incomeService)
-        : Controller
+    public class IncomeController(
+        ILogger<IncomeController> logger,
+        IUserService userService,
+        IIncomeService incomeService
+    ) : Controller
     {
+        private readonly ILogger<IncomeController> _logger = logger;
         private readonly IUserService _userService = userService;
         private readonly IIncomeService _incomeService = incomeService;
 
@@ -32,6 +35,16 @@ namespace PersonalBudgetManager.Api.Controllers
             return Ok(incomes);
         }
 
+        /// <summary>
+        /// Registers a new income for the authenticated user.
+        /// </summary>
+        /// <param name="income">The income data transfer object containing the details of the income to be registered.</param>
+        /// <param name="token">A cancellation token that can be used to cancel the operation.</param>
+        /// <returns>An <see cref="IActionResult"/> indicating the result of the operation.</returns>
+        /// <response code="200">Income added to the user.</response>
+        /// <response code="400">Bad request if the model state is invalid, user is not found, token is invalid, or category is not registered.</response>
+        /// <response code="449">Operation canceled.</response>
+        /// <response code="500">An unexpected error occurred.</response>
         [HttpPost]
         [Authorize]
         [Route("RegisterIncome")]
@@ -60,8 +73,14 @@ namespace PersonalBudgetManager.Api.Controllers
             {
                 return StatusCode(449, ErrorMessages.OperationCanceled);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _logger.LogError(
+                    "An unexpected error occurred: {Message}\nIncome details: {@Income}",
+                    e.Message,
+                    income
+                );
+
                 return StatusCode(500, ErrorMessages.UnexpectedError);
             }
         }
