@@ -107,10 +107,12 @@ builder.Services.AddDbContext<AppDbContext>(
 //Adding services
 builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<IIncomeRepository, IncomeRepository>();
+builder.Services.AddSingleton<ICategoryRepository, CategoryRepository>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IUserService, UserService>();
 builder.Services.AddSingleton<IIncomeService, IncomeService>();
+builder.Services.AddSingleton<ICategoryService, CategoryService>();
 
 var app = builder.Build();
 

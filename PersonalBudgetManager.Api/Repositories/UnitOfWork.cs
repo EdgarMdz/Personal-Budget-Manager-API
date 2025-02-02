@@ -5,14 +5,18 @@ using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories
 {
-    public class UnitOfWork(AppDbContext appDbContext, IIncomeRepository incomeRepository)
-        : IUnitOfWork,
-            IDisposable
+    public class UnitOfWork(
+        AppDbContext appDbContext,
+        IIncomeRepository incomeRepository,
+        ICategoryRepository categoryRepository
+    ) : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _appDbContext = appDbContext;
         private readonly Dictionary<Type, object> _repositories = [];
 
         public IIncomeRepository IncomeRepository { get; } = incomeRepository;
+
+        public ICategoryRepository CategoryRepository { get; } = categoryRepository;
 
         public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken token) =>
             await _appDbContext.Database.BeginTransactionAsync(token);

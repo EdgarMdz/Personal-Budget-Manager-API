@@ -22,11 +22,6 @@ namespace PersonalBudgetManager.Api.Services
         public async Task<User?> FindByName(string userName, CancellationToken token) =>
             await _repo.GetByNameAsync(userName, token);
 
-        public Category? FindCategory(User user, string category) =>
-            user.Categories.FirstOrDefault(cat =>
-                cat.Name.Equals(category, StringComparison.CurrentCultureIgnoreCase)
-            );
-
         public async Task<string> Login(UserDTO user, CancellationToken token)
         {
             try

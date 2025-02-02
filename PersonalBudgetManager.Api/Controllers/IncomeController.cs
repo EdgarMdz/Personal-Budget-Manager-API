@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +12,14 @@ namespace PersonalBudgetManager.Api.Controllers
     public class IncomeController(
         ILogger<IncomeController> logger,
         IUserService userService,
-        IIncomeService incomeService
+        IIncomeService incomeService,
+        ICategoryService categoryService
     ) : Controller
     {
         private readonly ILogger<IncomeController> _logger = logger;
         private readonly IUserService _userService = userService;
         private readonly IIncomeService _incomeService = incomeService;
+        private readonly ICategoryService _categoryService = categoryService;
 
         [HttpGet]
         [Authorize]
@@ -62,9 +63,12 @@ namespace PersonalBudgetManager.Api.Controllers
                     return BadRequest(ErrorMessages.UserNotFound);
 
                 if (await _userService.FindByName(username, token) is not User user)
-                    return BadRequest(ErrorMessages.InvalidToken);
+                    return BadRequest(ErrorMessages.UserNotFound);
 
-                if (_userService.FindCategory(user, income.Category) is not Category category)
+                if (
+                    await _categoryService.GetUserCategory(user.Id, income.Category, token)
+                    is not Category category
+                )
                     return BadRequest(ErrorMessages.NotRegisteredCategory);
 
                 await _incomeService.AddIncome(income, category.Id, user.Id, token);
@@ -79,14 +83,16 @@ namespace PersonalBudgetManager.Api.Controllers
             {
                 var incomeJson = JsonSerializer.Serialize(income);
                 var message = $"{e.Message}\nIncome details: {incomeJson}";
-                LogError(message);
+
+                _logger.LogError(
+                    "Error at \"{MethodName}\": {Message}",
+                    nameof(RegisterIncome),
+                    message
+                );
 
                 return StatusCode(500, ErrorMessages.UnexpectedError);
             }
         }
-
-        private void LogError(string message, [CallerMemberName] string methodName = "") =>
-            _logger.LogError("Error at \"{MethodName}\": {Message}", methodName, message);
 
         [HttpGet]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
