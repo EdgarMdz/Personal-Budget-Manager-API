@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.DataContext.Entities;
@@ -21,13 +22,64 @@ namespace PersonalBudgetManager.Api.Controllers
             var userClaims = HttpContext.User;
 
             if (userClaims.Identity?.Name is not string userName)
-                return BadRequest("User name is null");
+                return BadRequest("Not valid token");
 
             if (await _userService.FindByName(userName, token) is not User user)
                 return BadRequest("Operation not valid");
 
             var incomes = await _incomeService.GetIncomes(user.Id, token);
             return Ok(incomes);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("RegisterIncome")]
+        public async Task<IActionResult> RegisterIncome(IncomeDTO income, CancellationToken token)
+        {
+            try
+            {
+                var userClaims = HttpContext.User;
+
+                if (userClaims.Identity?.Name is not string username)
+                    return BadRequest("Not valid token");
+
+                if (await _userService.FindByName(username, token) is not User user)
+                    return BadRequest("Operation not valid");
+
+                if (income.Category is null)
+                    return BadRequest("Add a valid category");
+
+                if (income.Amount <= 0)
+                    return BadRequest("The income must be a positive value greater than 0");
+
+                if (string.IsNullOrWhiteSpace(income.Description))
+                    return BadRequest("Add a description");
+
+                if (
+                    !user.Categories.Any(cat =>
+                        cat.Name.Equals(income.Category, StringComparison.CurrentCultureIgnoreCase)
+                    )
+                )
+                    return BadRequest("The category is not registed yet.");
+
+                var categoryId = user
+                    .Categories.Where(c =>
+                        c.Name.Equals(income.Category, StringComparison.CurrentCultureIgnoreCase)
+                    )
+                    .First()
+                    .Id;
+
+                await _incomeService.AddIncome(income, categoryId, user.Id, token);
+                return Ok("Income added to the user. :)");
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(449, "Operation canceled by the user");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An unexpected server error occurred. :(");
+            }
         }
 
         [HttpGet]

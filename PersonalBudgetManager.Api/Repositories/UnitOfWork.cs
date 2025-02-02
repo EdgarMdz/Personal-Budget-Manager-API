@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Storage;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
@@ -13,7 +14,7 @@ namespace PersonalBudgetManager.Api.Repositories
 
         public IIncomeRepository IncomeRepository { get; } = incomeRepository;
 
-        public async Task BeginTransactionAsync(CancellationToken token) =>
+        public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken token) =>
             await _appDbContext.Database.BeginTransactionAsync(token);
 
         public async Task CommitTransactionAsync(CancellationToken token) =>

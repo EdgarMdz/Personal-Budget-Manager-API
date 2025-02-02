@@ -10,8 +10,7 @@ namespace PersonalBudgetManager.Api.DataContext.Entities
         public int? CategoryId { get; set; }
         public required string Description { get; set; }
         public DateTime Date { get; set; }
-
-        public virtual required User User { get; set; } //navigation property
+        public virtual User? User { get; set; } //navigation property
         public virtual Category? Category { get; set; } //navigation property
     }
 }
