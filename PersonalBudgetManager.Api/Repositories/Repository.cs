@@ -60,7 +60,10 @@ namespace PersonalBudgetManager.Api.Repositories
             {
                 // Handle database update exceptions
                 // Log the exception or rethrow it
-                throw new Exception("An error occurred while accessing the database.", ex);
+                throw new Exception(
+                    $"An error occurred while accessing the database: {ex.Message}",
+                    ex
+                );
             }
             catch (OperationCanceledException ex)
             {
@@ -72,7 +75,7 @@ namespace PersonalBudgetManager.Api.Repositories
             {
                 // Handle all other exceptions
                 // Log the exception or rethrow it
-                throw new Exception("An unexpected error occurred.", ex);
+                throw new Exception($"An error occurred: {ex.Message}", ex);
             }
         }
 

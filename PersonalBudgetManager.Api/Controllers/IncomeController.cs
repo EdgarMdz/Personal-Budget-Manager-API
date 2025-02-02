@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Common;
@@ -75,11 +76,7 @@ namespace PersonalBudgetManager.Api.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(
-                    "An unexpected error occurred: {Message}\nIncome details: {@Income}",
-                    e.Message,
-                    income
-                );
+                var incomeJson = JsonSerializer.Serialize(income);
 
                 return StatusCode(500, ErrorMessages.UnexpectedError);
             }
