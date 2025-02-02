@@ -36,6 +36,8 @@ namespace PersonalBudgetManager.Api.Controllers
         [Route("RegisterIncome")]
         public async Task<IActionResult> RegisterIncome(IncomeDTO income, CancellationToken token)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             try
             {
                 var userClaims = HttpContext.User;
@@ -45,15 +47,6 @@ namespace PersonalBudgetManager.Api.Controllers
 
                 if (await _userService.FindByName(username, token) is not User user)
                     return BadRequest("Operation not valid");
-
-                if (income.Category is null)
-                    return BadRequest("Add a valid category");
-
-                if (income.Amount <= 0)
-                    return BadRequest("The income must be a positive value greater than 0");
-
-                if (string.IsNullOrWhiteSpace(income.Description))
-                    return BadRequest("Add a description");
 
                 if (_userService.FindCategory(user, income.Category) is not Category category)
                     return BadRequest("The category is not registed yet.");
