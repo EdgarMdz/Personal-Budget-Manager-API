@@ -4,7 +4,12 @@ namespace PersonalBudgetManager.Api.Services.Interfaces
 {
     public interface IIncomeService
     {
-        Task AddIncome(IncomeDTO income, int categoryId, int userId, CancellationToken token);
+        Task<IncomeDTO> AddIncome(
+            IncomeDTO incomeDTO,
+            int categoryId,
+            int userId,
+            CancellationToken token
+        );
         public Task<IEnumerable<IncomeDTO>> GetIncomes(int userId, CancellationToken token);
     }
 }

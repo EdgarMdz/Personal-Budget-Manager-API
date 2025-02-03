@@ -87,9 +87,13 @@ namespace PersonalBudgetManager.Api.Controllers
                 )
                     return BadRequest(ErrorMessages.NotRegisteredCategory);
 
-                await _incomeService.AddIncome(income, category.Id, user.Id, token);
+                var newIncome = await _incomeService.AddIncome(income, category.Id, user.Id, token);
 
-                return Ok("Income added to the user.");
+                return CreatedAtAction(
+                    nameof(GetUserIncomes),
+                    new { id = newIncome.Id },
+                    newIncome
+                );
             }
             catch (OperationCanceledException)
             {

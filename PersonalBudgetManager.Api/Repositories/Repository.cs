@@ -27,7 +27,7 @@ namespace PersonalBudgetManager.Api.Repositories
             return await PerformDatabaseOperation(async () => await _dbSet.FindAsync([id], token));
         }
 
-        public async Task<T?> InsertAsync(T entity, CancellationToken token) =>
+        public async Task<T> InsertAsync(T entity, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
             {
                 var result = await _dbSet.AddAsync(entity, token);

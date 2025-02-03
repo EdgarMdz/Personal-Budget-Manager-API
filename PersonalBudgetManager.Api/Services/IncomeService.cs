@@ -11,7 +11,7 @@ namespace PersonalBudgetManager.Api.Services
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IIncomeRepository _repo = unitOfWork.IncomeRepository;
 
-        public async Task AddIncome(
+        public async Task<IncomeDTO> AddIncome(
             IncomeDTO incomeDTO,
             int categoryId,
             int userId,
@@ -30,9 +30,30 @@ namespace PersonalBudgetManager.Api.Services
                 };
 
                 transaction = await _unitOfWork.BeginTransactionAsync(token);
-                await _repo.InsertAsync(newIncome, token);
+                newIncome = await _repo.InsertAsync(newIncome, token);
                 await _unitOfWork.SaveChangesAsync(token);
                 await _unitOfWork.CommitTransactionAsync(token);
+
+                if (newIncome == null)
+                    throw new InvalidOperationException("Failed to add income.");
+
+                Category? category = newIncome.CategoryId.HasValue
+                    ? await _unitOfWork.CategoryRepository.GetByIdAsync(
+                        newIncome.CategoryId.Value,
+                        token
+                    )
+                    : null;
+
+                IncomeDTO income = new()
+                {
+                    Id = newIncome.Id,
+                    Description = newIncome.Description,
+                    Amount = newIncome.Amount,
+                    Date = newIncome.Date,
+                    Category = category?.Name ?? string.Empty,
+                };
+
+                return income;
             }
             catch (Exception)
             {
@@ -60,6 +81,7 @@ namespace PersonalBudgetManager.Api.Services
                             Date = income.Date,
                             Amount = income.Amount,
                             Category = income.Category?.Name ?? "",
+                            Id = income.Id,
                         }
                     );
                 }
