@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Common;
@@ -30,12 +31,27 @@ namespace PersonalBudgetManager.Api.Controllers
 
             if (userClaims.Identity?.Name is not string userName)
                 return BadRequest(ErrorMessages.InvalidToken);
+            try
+            {
+                if (await _userService.FindByName(userName, token) is not User user)
+                    return BadRequest(ErrorMessages.UserNotFound);
 
-            if (await _userService.FindByName(userName, token) is not User user)
-                return BadRequest(ErrorMessages.UserNotFound);
-
-            var incomes = await _incomeService.GetIncomes(user.Id, token);
-            return Ok(incomes);
+                var incomes = await _incomeService.GetIncomes(user.Id, token);
+                return Ok(incomes);
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(449, ErrorMessages.OperationCanceled);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(
+                    "Error at {MethodName}: {Message}",
+                    nameof(GetUserIncomes),
+                    e.Message
+                );
+                return StatusCode(500, ErrorMessages.UnexpectedError);
+            }
         }
 
         /// <summary>

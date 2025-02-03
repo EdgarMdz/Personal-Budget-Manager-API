@@ -19,8 +19,17 @@ namespace PersonalBudgetManager.Api.Services
 
         private readonly INameableRepository<User> _repo = unitOfWork.GetNameableRepository<User>();
 
-        public async Task<User?> FindByName(string userName, CancellationToken token) =>
-            await _repo.GetByNameAsync(userName, token);
+        public async Task<User?> FindByName(string userName, CancellationToken token)
+        {
+            try
+            {
+                return await _repo.GetByNameAsync(userName, token);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
 
         public async Task<string> Login(UserDTO user, CancellationToken token)
         {

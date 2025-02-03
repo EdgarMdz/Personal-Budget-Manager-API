@@ -45,24 +45,31 @@ namespace PersonalBudgetManager.Api.Services
 
         public async Task<IEnumerable<IncomeDTO>> GetIncomes(int userId, CancellationToken token)
         {
-            var userIncomes = await _repo.GetIncomesForUser(userId, token);
-
-            List<IncomeDTO> incomes = [];
-
-            foreach (Income income in userIncomes)
+            try
             {
-                incomes.Add(
-                    new()
-                    {
-                        Description = income.Description,
-                        Date = income.Date,
-                        Amount = income.Amount,
-                        Category = income.Category?.Name ?? "",
-                    }
-                );
-            }
+                var userIncomes = await _repo.GetIncomesForUser(userId, token);
 
-            return incomes;
+                List<IncomeDTO> incomes = [];
+
+                foreach (Income income in userIncomes)
+                {
+                    incomes.Add(
+                        new()
+                        {
+                            Description = income.Description,
+                            Date = income.Date,
+                            Amount = income.Amount,
+                            Category = income.Category?.Name ?? "",
+                        }
+                    );
+                }
+
+                return incomes;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }
