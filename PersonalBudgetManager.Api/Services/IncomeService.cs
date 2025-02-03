@@ -62,6 +62,11 @@ namespace PersonalBudgetManager.Api.Services
 
                 throw;
             }
+            finally
+            {
+                if (transaction != null)
+                    await transaction.DisposeAsync();
+            }
         }
 
         public async Task<IEnumerable<IncomeDTO>> GetIncomes(int userId, CancellationToken token)
