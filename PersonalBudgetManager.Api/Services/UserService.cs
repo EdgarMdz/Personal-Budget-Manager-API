@@ -1,4 +1,5 @@
 using System.Security.Authentication;
+using Microsoft.EntityFrameworkCore.Storage;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
@@ -18,8 +19,17 @@ namespace PersonalBudgetManager.Api.Services
 
         private readonly INameableRepository<User> _repo = unitOfWork.GetNameableRepository<User>();
 
-        public async Task<User?> FindByName(string userName, CancellationToken token) =>
-            await _repo.GetByNameAsync(userName, token);
+        public async Task<User?> FindByName(string userName, CancellationToken token)
+        {
+            try
+            {
+                return await _repo.GetByNameAsync(userName, token);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
 
         public async Task<string> Login(UserDTO user, CancellationToken token)
         {
@@ -49,9 +59,10 @@ namespace PersonalBudgetManager.Api.Services
         {
             var hashedPassword = _encryptionHashService.HashString(user.Password, out string salt);
 
-            await _unitofWork.BeginTransactionAsync(token);
+            IDbContextTransaction? transaction = null;
             try
             {
+                transaction = await _unitofWork.BeginTransactionAsync(token);
                 User newUser =
                     await _repo.InsertAsync(
                         new()
@@ -69,7 +80,8 @@ namespace PersonalBudgetManager.Api.Services
             }
             catch (Exception)
             {
-                await _unitofWork.RollbackTransactionAsync(CancellationToken.None);
+                if (transaction != null)
+                    await _unitofWork.RollbackTransactionAsync(CancellationToken.None);
                 throw;
             }
         }

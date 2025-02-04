@@ -8,7 +8,7 @@ namespace PersonalBudgetManager.Api.Repositories
     public class Repository<T>(AppDbContext context) : IRepository<T>
         where T : class, IEntity
     {
-        private readonly DbSet<T> _dbSet = context.Set<T>();
+        protected readonly DbSet<T> _dbSet = context.Set<T>();
 
         public async Task<T?> DeleteAsync(int id, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
@@ -27,7 +27,7 @@ namespace PersonalBudgetManager.Api.Repositories
             return await PerformDatabaseOperation(async () => await _dbSet.FindAsync([id], token));
         }
 
-        public async Task<T?> InsertAsync(T entity, CancellationToken token) =>
+        public async Task<T> InsertAsync(T entity, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
             {
                 var result = await _dbSet.AddAsync(entity, token);
@@ -60,7 +60,10 @@ namespace PersonalBudgetManager.Api.Repositories
             {
                 // Handle database update exceptions
                 // Log the exception or rethrow it
-                throw new Exception("An error occurred while accessing the database.", ex);
+                throw new Exception(
+                    $"An error occurred while accessing the database: {ex.Message}",
+                    ex
+                );
             }
             catch (OperationCanceledException ex)
             {
@@ -72,7 +75,7 @@ namespace PersonalBudgetManager.Api.Repositories
             {
                 // Handle all other exceptions
                 // Log the exception or rethrow it
-                throw new Exception("An unexpected error occurred.", ex);
+                throw new Exception($"An error occurred: {ex.Message}", ex);
             }
         }
 
