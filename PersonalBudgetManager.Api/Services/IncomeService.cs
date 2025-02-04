@@ -106,7 +106,7 @@ namespace PersonalBudgetManager.Api.Services
             async Task<IncomeDTO> action()
             {
                 if (await _repo.GetByIdAsync(incomeId, token) is not Income income)
-                    throw new InvalidOperationException(ErrorMessages.NotRegisteredCIncome);
+                    throw new InvalidOperationException(ErrorMessages.NotRegisteredCategory);
 
                 if (income.UserId != userId)
                     throw new UnauthorizedAccessException(ErrorMessages.UnauthorizedOperation);

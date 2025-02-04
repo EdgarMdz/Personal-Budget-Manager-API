@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Common;
@@ -9,12 +11,13 @@ namespace PersonalBudgetManager.Api.Controllers
 {
     [Route("[controller]")]
     public class IncomeController(
-        ILogger<IncomeController> _incomeLogger,
+        ILogger<IncomeController> logger,
         IUserService userService,
         IIncomeService incomeService,
         ICategoryService categoryService
-    ) : BaseController(_incomeLogger)
+    ) : Controller
     {
+        private readonly ILogger<IncomeController> _logger = logger;
         private readonly IUserService _userService = userService;
         private readonly IIncomeService _incomeService = incomeService;
         private readonly ICategoryService _categoryService = categoryService;
@@ -28,8 +31,7 @@ namespace PersonalBudgetManager.Api.Controllers
 
             if (userClaims.Identity?.Name is not string userName)
                 return BadRequest(ErrorMessages.InvalidToken);
-
-            async Task<IActionResult> action()
+            try
             {
                 if (await _userService.FindByName(userName, token) is not User user)
                     return BadRequest(ErrorMessages.UserNotFound);
@@ -37,8 +39,19 @@ namespace PersonalBudgetManager.Api.Controllers
                 var incomes = await _incomeService.GetIncomes(user.Id, token);
                 return Ok(incomes);
             }
-
-            return await PerformActionSafely(action, null);
+            catch (OperationCanceledException)
+            {
+                return StatusCode(449, ErrorMessages.OperationCanceled);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(
+                    "Error at {MethodName}: {Message}",
+                    nameof(GetUserIncomes),
+                    e.Message
+                );
+                return StatusCode(500, ErrorMessages.UnexpectedError);
+            }
         }
 
         [HttpGet]
@@ -148,6 +161,35 @@ namespace PersonalBudgetManager.Api.Controllers
             );
         }
 
+        private async Task<IActionResult> PerformActionSafely(
+            Func<Task<IActionResult>> action,
+            object? parameters,
+            [CallerMemberName] string methodName = ""
+        )
+        {
+            try
+            {
+                return await action();
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(449, ErrorMessages.OperationCanceled);
+            }
+            catch (InvalidOperationException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                var incomeJson = JsonSerializer.Serialize(parameters);
+                var message = $"{e.Message}\nIncome details: {incomeJson}";
+
+                _logger.LogError("Error at \"{MethodName}\": {Message}", methodName, message);
+
+                return StatusCode(500, ErrorMessages.UnexpectedError);
+            }
+        }
+
         [HttpDelete]
         [Authorize]
         [Route("DeleteIncome")]
@@ -161,15 +203,24 @@ namespace PersonalBudgetManager.Api.Controllers
             if (userClaims.Identity?.Name is not string username)
                 return BadRequest(ErrorMessages.UserNotFound);
 
-            async Task<IActionResult> action()
-            {
-                if (await _userService.FindByName(username, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
+            return await PerformActionSafely(
+                async () =>
+                {
+                    if (await _userService.FindByName(username, token) is not User user)
+                        return BadRequest(ErrorMessages.UserNotFound);
 
-                await _incomeService.DeleteIncome(id, user.Id, token);
-                return NoContent();
-            }
-            return await PerformActionSafely(action, id);
+                    await _incomeService.DeleteIncome(id, user.Id, token);
+                    return NoContent();
+                },
+                id
+            );
+        }
+
+        [HttpGet]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View("Error!");
         }
     }
 }

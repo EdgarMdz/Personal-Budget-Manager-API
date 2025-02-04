@@ -10,6 +10,5 @@ namespace PersonalBudgetManager.Api.Common
         public const string UserNotFound = "Operation not valid.";
         public const string ProvideParater = "Missing necesary parameter.";
         public const string UnauthorizedOperation = "User does not have access to this record.";
-        public const string NotRegisteredCIncome = "The income does not exist.";
     }
 }
