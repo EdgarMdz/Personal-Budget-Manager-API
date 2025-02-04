@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Azure.Messaging;
 using Castle.Components.DictionaryAdapter.Xml;
@@ -55,6 +56,33 @@ namespace PersonalBudgetManager.Api.Controllers
             }
         }
 
+        [HttpGet]
+        [Authorize]
+        [Route("GetIncome")]
+        public async Task<IActionResult> GetUserIncomeById(int id, CancellationToken token)
+        {
+            if (id < 0)
+                return BadRequest(ErrorMessages.InvalidIdValue);
+
+            var userClaims = HttpContext.User;
+
+            if (userClaims.Identity?.Name is not string username)
+                return BadRequest(ErrorMessages.InvalidIdValue);
+
+            return await PerformActionSafely(
+                async () =>
+                {
+                    if (await _userService.FindByName(username, token) is not User user)
+                        return BadRequest(ErrorMessages.InvalidIdValue);
+
+                    IncomeDTO income = await _incomeService.GetIncomeById(id, user.Id, token);
+
+                    return Ok(income);
+                },
+                id
+            );
+        }
+
         /// <summary>
         /// Registers a new income for the authenticated user.
         /// </summary>
@@ -72,47 +100,38 @@ namespace PersonalBudgetManager.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            try
-            {
-                var userClaims = HttpContext.User;
+            var userClaims = HttpContext.User;
 
-                if (userClaims.Identity?.Name is not string username)
-                    return BadRequest(ErrorMessages.UserNotFound);
+            if (userClaims.Identity?.Name is not string username)
+                return BadRequest(ErrorMessages.UserNotFound);
 
-                if (await _userService.FindByName(username, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
+            return await PerformActionSafely(
+                async () =>
+                {
+                    if (await _userService.FindByName(username, token) is not User user)
+                        return BadRequest(ErrorMessages.UserNotFound);
 
-                if (
-                    await _categoryService.GetUserCategory(user.Id, income.Category, token)
-                    is not Category category
-                )
-                    return BadRequest(ErrorMessages.NotRegisteredCategory);
+                    if (
+                        await _categoryService.GetUserCategory(user.Id, income.Category, token)
+                        is not Category category
+                    )
+                        return BadRequest(ErrorMessages.NotRegisteredCategory);
 
-                var newIncome = await _incomeService.AddIncome(income, category.Id, user.Id, token);
+                    var newIncome = await _incomeService.AddIncome(
+                        income,
+                        category.Id,
+                        user.Id,
+                        token
+                    );
 
-                return CreatedAtAction(
-                    nameof(GetUserIncomes),
-                    new { id = newIncome.Id },
-                    newIncome
-                );
-            }
-            catch (OperationCanceledException)
-            {
-                return StatusCode(449, ErrorMessages.OperationCanceled);
-            }
-            catch (Exception e)
-            {
-                var incomeJson = JsonSerializer.Serialize(income);
-                var message = $"{e.Message}\nIncome details: {incomeJson}";
-
-                _logger.LogError(
-                    "Error at \"{MethodName}\": {Message}",
-                    nameof(RegisterIncome),
-                    message
-                );
-
-                return StatusCode(500, ErrorMessages.UnexpectedError);
-            }
+                    return CreatedAtAction(
+                        nameof(GetUserIncomes),
+                        new { id = newIncome.Id },
+                        newIncome
+                    );
+                },
+                income
+            );
         }
 
         [HttpPut]
@@ -130,14 +149,29 @@ namespace PersonalBudgetManager.Api.Controllers
             if (userClaims.Identity?.Name is not string username)
                 return BadRequest(ErrorMessages.UserNotFound);
 
+            return await PerformActionSafely(
+                async () =>
+                {
+                    if (await _userService.FindByName(username, token) is not User user)
+                        return BadRequest(ErrorMessages.UserNotFound);
+
+                    await _incomeService.UpdateIncome(income, user.Id, token);
+
+                    return NoContent();
+                },
+                income
+            );
+        }
+
+        private async Task<IActionResult> PerformActionSafely(
+            Func<Task<IActionResult>> action,
+            object? parameters,
+            [CallerMemberName] string methodName = ""
+        )
+        {
             try
             {
-                if (await _userService.FindByName(username, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
-
-                await _incomeService.UpdateIncome(income, user.Id, token);
-
-                return NoContent();
+                return await action();
             }
             catch (OperationCanceledException)
             {
@@ -149,14 +183,10 @@ namespace PersonalBudgetManager.Api.Controllers
             }
             catch (Exception e)
             {
-                var incomeJson = JsonSerializer.Serialize(income);
+                var incomeJson = JsonSerializer.Serialize(parameters);
                 var message = $"{e.Message}\nIncome details: {incomeJson}";
 
-                _logger.LogError(
-                    "Error at \"{MethodName}\": {Message}",
-                    nameof(UpdateIncome),
-                    message
-                );
+                _logger.LogError("Error at \"{MethodName}\": {Message}", methodName, message);
 
                 return StatusCode(500, ErrorMessages.UnexpectedError);
             }

@@ -7,7 +7,7 @@ namespace PersonalBudgetManager.Api.Models
     {
         public int? Id { get; set; }
 
-        [Range(0.01, double.MaxValue, ErrorMessage = ErrorMessages.InvalidIncomeValue)]
+        [Range(0.01, double.MaxValue, ErrorMessage = ErrorMessages.InvalidIdValue)]
         public required decimal Amount { get; set; }
 
         [Required]

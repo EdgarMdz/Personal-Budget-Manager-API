@@ -70,6 +70,35 @@ namespace PersonalBudgetManager.Api.Services
             }
         }
 
+        public async Task<IncomeDTO> GetIncomeById(
+            int incomeId,
+            int userId,
+            CancellationToken token
+        )
+        {
+            async Task<IncomeDTO> action()
+            {
+                if (await _repo.GetByIdAsync(incomeId, token) is not Income income)
+                    throw new InvalidOperationException(ErrorMessages.NotRegisteredCategory);
+
+                if (income.UserId != userId)
+                    throw new UnauthorizedAccessException(ErrorMessages.UnauthorizedOperation);
+
+                IncomeDTO incomeDTO = new()
+                {
+                    Id = income.Id,
+                    Amount = income.Amount,
+                    Description = income.Description,
+                    Date = income.Date,
+                    Category = income.Category?.Name ?? string.Empty,
+                };
+
+                return incomeDTO;
+            }
+
+            return await ExecuteQuery(action, token);
+        }
+
         public async Task<IEnumerable<IncomeDTO>> GetIncomes(int userId, CancellationToken token)
         {
             try
@@ -106,9 +135,7 @@ namespace PersonalBudgetManager.Api.Services
             CancellationToken token
         )
         {
-            IDbContextTransaction? transaction = null;
-
-            try
+            async Task<IncomeDTO> action()
             {
                 if (incomeDTO.Id == null)
                     throw new InvalidOperationException(
@@ -131,8 +158,6 @@ namespace PersonalBudgetManager.Api.Services
                     category?.Id
                     ?? throw new InvalidOperationException(ErrorMessages.NotRegisteredCategory);
 
-                transaction = await _unitOfWork.BeginTransactionAsync(token);
-
                 if (await _repo.UpdateAsync(existingIncome, token) is not Income updatedIncome)
                     throw new InvalidOperationException(ErrorMessages.UnexpectedError);
 
@@ -147,6 +172,19 @@ namespace PersonalBudgetManager.Api.Services
                     Date = updatedIncome.Date,
                     Category = category != null ? category.Name : string.Empty,
                 };
+            }
+
+            return await ExecuteQuery(action, token);
+        }
+
+        private async Task<T> ExecuteQuery<T>(Func<Task<T>> action, CancellationToken token)
+        {
+            IDbContextTransaction? transaction = null;
+
+            try
+            {
+                transaction = await _unitOfWork.BeginTransactionAsync(token);
+                return await action();
             }
             catch (Exception)
             {
