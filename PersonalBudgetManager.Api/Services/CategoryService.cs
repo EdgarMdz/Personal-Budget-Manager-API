@@ -4,15 +4,18 @@ using PersonalBudgetManager.Api.Services.Interfaces;
 
 namespace PersonalBudgetManager.Api.Services
 {
-    public class CategoryService(IUnitOfWork unitOfWork) : ICategoryService
+    public class CategoryService(IUnitOfWork unitOfWork) : BaseService(unitOfWork), ICategoryService
     {
-        private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ICategoryRepository _repo = unitOfWork.CategoryRepository;
 
         public async Task<Category?> GetUserCategory(
             int userId,
             string categoryName,
             CancellationToken token
-        ) => await _repo.FindUserCategory(userId, categoryName, token);
+        ) =>
+            await PerformTransactionalOperation(
+                async () => await _repo.FindUserCategory(userId, categoryName, token),
+                token
+            );
     }
 }

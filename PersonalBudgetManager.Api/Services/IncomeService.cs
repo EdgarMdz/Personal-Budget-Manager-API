@@ -7,9 +7,8 @@ using PersonalBudgetManager.Api.Services.Interfaces;
 
 namespace PersonalBudgetManager.Api.Services
 {
-    public class IncomeService(IUnitOfWork unitOfWork) : IIncomeService
+    public class IncomeService(IUnitOfWork unitOfWork) : BaseService(unitOfWork), IIncomeService
     {
-        private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IIncomeRepository _repo = unitOfWork.IncomeRepository;
 
         public async Task<IncomeDTO> AddIncome(
@@ -202,35 +201,6 @@ namespace PersonalBudgetManager.Api.Services
             }
 
             return await PerformTransactionalOperation(action, token);
-        }
-
-        private async Task<T> PerformTransactionalOperation<T>(
-            Func<Task<T>> action,
-            CancellationToken token
-        )
-        {
-            IDbContextTransaction? transaction = null;
-
-            try
-            {
-                transaction = await _unitOfWork.BeginTransactionAsync(token);
-                var result = await action();
-                await _unitOfWork.SaveChangesAsync(token);
-                await _unitOfWork.CommitTransactionAsync(token);
-                return result;
-            }
-            catch (Exception)
-            {
-                if (transaction != null)
-                    await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
-
-                throw;
-            }
-            finally
-            {
-                if (transaction != null)
-                    await transaction.DisposeAsync();
-            }
         }
 
         private async Task<Category?> GetCategory(
