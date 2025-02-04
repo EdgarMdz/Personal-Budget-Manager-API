@@ -2,8 +2,10 @@ namespace PersonalBudgetManager.Api.Common
 {
     public static class ErrorMessages
     {
+        public const string FailedToCreateUser = "Failed to insert new user.";
         public const string InvalidIdValue = "The id must be a positive value greater than 0.";
         public const string InvalidToken = "Not valid token.";
+        public const string InvalidUserCredentials = "User name or password are incorrect.";
         public const string NotRegisteredCategory = "The category is not registed yet.";
         public const string NotRegisteredCIncome = "The income does not exist.";
         public const string OperationCanceled = "Operation canceled by the user.";
