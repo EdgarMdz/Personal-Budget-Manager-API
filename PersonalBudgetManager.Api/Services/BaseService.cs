@@ -1,4 +1,3 @@
-using System.Net;
 using Microsoft.EntityFrameworkCore.Storage;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
 
