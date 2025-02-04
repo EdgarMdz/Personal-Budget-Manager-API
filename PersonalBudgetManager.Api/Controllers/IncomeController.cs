@@ -25,7 +25,7 @@ namespace PersonalBudgetManager.Api.Controllers
 
         [HttpGet]
         [Authorize]
-        [Route("GetIncomes")]
+        [Route("GetAllIncomes")]
         public async Task<IActionResult> GetUserIncomes(CancellationToken token)
         {
             var userClaims = HttpContext.User;
