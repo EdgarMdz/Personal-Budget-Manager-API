@@ -1,5 +1,4 @@
 using System.Security.Authentication;
-using Azure.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Services.Interfaces;
