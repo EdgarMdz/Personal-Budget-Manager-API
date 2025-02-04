@@ -1,7 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Azure.Messaging;
-using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Common;
@@ -190,6 +188,32 @@ namespace PersonalBudgetManager.Api.Controllers
 
                 return StatusCode(500, ErrorMessages.UnexpectedError);
             }
+        }
+
+        [HttpDelete]
+        [Authorize]
+        [Route("DeleteIncome")]
+        public async Task<IActionResult> DeleteIncome(int id, CancellationToken token)
+        {
+            if (id < 0)
+                return BadRequest(ErrorMessages.InvalidIdValue);
+
+            var userClaims = HttpContext.User;
+
+            if (userClaims.Identity?.Name is not string username)
+                return BadRequest(ErrorMessages.UserNotFound);
+
+            return await PerformActionSafely(
+                async () =>
+                {
+                    if (await _userService.FindByName(username, token) is not User user)
+                        return BadRequest(ErrorMessages.UserNotFound);
+
+                    await _incomeService.DeleteIncome(id, user.Id, token);
+                    return NoContent();
+                },
+                id
+            );
         }
 
         [HttpGet]

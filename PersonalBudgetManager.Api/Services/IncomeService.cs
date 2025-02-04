@@ -70,6 +70,33 @@ namespace PersonalBudgetManager.Api.Services
             }
         }
 
+        public async Task<IncomeDTO> DeleteIncome(int incomeId, int userId, CancellationToken token)
+        {
+            async Task<IncomeDTO> action()
+            {
+                if (
+                    await _repo.GetByIdAsync(incomeId, token) is not Income income
+                    || income.UserId != userId
+                )
+                    throw new UnauthorizedAccessException(ErrorMessages.UnauthorizedOperation);
+
+                income =
+                    await _repo.DeleteAsync(incomeId, token)
+                    ?? throw new InvalidOperationException(ErrorMessages.UnexpectedError);
+
+                return new()
+                {
+                    Id = income.Id,
+                    Category = income.Category?.Name ?? string.Empty,
+                    Description = income.Description,
+                    Amount = income.Amount,
+                    Date = income.Date,
+                };
+            }
+
+            return await PerformTransactionalOperation(action, token);
+        }
+
         public async Task<IncomeDTO> GetIncomeById(
             int incomeId,
             int userId,
@@ -96,7 +123,7 @@ namespace PersonalBudgetManager.Api.Services
                 return incomeDTO;
             }
 
-            return await ExecuteQuery(action, token);
+            return await PerformTransactionalOperation(action, token);
         }
 
         public async Task<IEnumerable<IncomeDTO>> GetIncomes(int userId, CancellationToken token)
@@ -174,17 +201,23 @@ namespace PersonalBudgetManager.Api.Services
                 };
             }
 
-            return await ExecuteQuery(action, token);
+            return await PerformTransactionalOperation(action, token);
         }
 
-        private async Task<T> ExecuteQuery<T>(Func<Task<T>> action, CancellationToken token)
+        private async Task<T> PerformTransactionalOperation<T>(
+            Func<Task<T>> action,
+            CancellationToken token
+        )
         {
             IDbContextTransaction? transaction = null;
 
             try
             {
                 transaction = await _unitOfWork.BeginTransactionAsync(token);
-                return await action();
+                var result = await action();
+                await _unitOfWork.SaveChangesAsync(token);
+                await _unitOfWork.CommitTransactionAsync(token);
+                return result;
             }
             catch (Exception)
             {
