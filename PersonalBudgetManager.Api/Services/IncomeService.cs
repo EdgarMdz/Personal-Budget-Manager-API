@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Storage;
+using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
@@ -35,7 +36,7 @@ namespace PersonalBudgetManager.Api.Services
                 await _unitOfWork.CommitTransactionAsync(token);
 
                 if (newIncome == null)
-                    throw new InvalidOperationException("Failed to add income.");
+                    throw new InvalidOperationException(ErrorMessages.UnexpectedError);
 
                 Category? category = newIncome.CategoryId.HasValue
                     ? await _unitOfWork.CategoryRepository.GetByIdAsync(
@@ -98,5 +99,73 @@ namespace PersonalBudgetManager.Api.Services
                 throw;
             }
         }
+
+        public async Task<IncomeDTO> UpdateIncome(
+            IncomeDTO incomeDTO,
+            int userId,
+            CancellationToken token
+        )
+        {
+            IDbContextTransaction? transaction = null;
+
+            try
+            {
+                if (incomeDTO.Id == null)
+                    throw new InvalidOperationException(
+                        $"{ErrorMessages.ProvideParater}: {nameof(incomeDTO.Id)}"
+                    );
+
+                if (
+                    await _repo.GetByIdAsync(incomeDTO.Id.Value, token) is not Income existingIncome
+                    || existingIncome.UserId != userId
+                )
+                    throw new UnauthorizedAccessException(ErrorMessages.UnauthorizedOperation);
+
+                Category? category = await GetCategory(incomeDTO.Category, userId, token);
+
+                existingIncome.Id = incomeDTO.Id.Value;
+                existingIncome.Description = incomeDTO.Description;
+                existingIncome.Date = incomeDTO.Date;
+                existingIncome.Amount = incomeDTO.Amount;
+                existingIncome.CategoryId =
+                    category?.Id
+                    ?? throw new InvalidOperationException(ErrorMessages.NotRegisteredCategory);
+
+                transaction = await _unitOfWork.BeginTransactionAsync(token);
+
+                if (await _repo.UpdateAsync(existingIncome, token) is not Income updatedIncome)
+                    throw new InvalidOperationException(ErrorMessages.UnexpectedError);
+
+                await _unitOfWork.SaveChangesAsync(token);
+                await _unitOfWork.CommitTransactionAsync(token);
+
+                return new()
+                {
+                    Id = updatedIncome.Id,
+                    Description = updatedIncome.Description,
+                    Amount = updatedIncome.Amount,
+                    Date = updatedIncome.Date,
+                    Category = category != null ? category.Name : string.Empty,
+                };
+            }
+            catch (Exception)
+            {
+                if (transaction != null)
+                    await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+
+                throw;
+            }
+            finally
+            {
+                if (transaction != null)
+                    await transaction.DisposeAsync();
+            }
+        }
+
+        private async Task<Category?> GetCategory(
+            string category,
+            int userId,
+            CancellationToken token
+        ) => await _unitOfWork.CategoryRepository.FindUserCategory(userId, category, token);
     }
 }

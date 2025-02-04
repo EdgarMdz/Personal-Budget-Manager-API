@@ -15,7 +15,10 @@ namespace PersonalBudgetManager.Api.Repositories
             CancellationToken token
         ) =>
             await PerformDatabaseOperation(
-                async () => await _dbSet.Where(c => c.UserId == userId).FirstOrDefaultAsync(token)
+                async () =>
+                    await _dbSet
+                        .Where(c => c.UserId == userId && c.Name == category)
+                        .FirstOrDefaultAsync(token)
             );
     }
 }

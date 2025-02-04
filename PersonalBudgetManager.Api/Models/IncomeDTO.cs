@@ -5,7 +5,7 @@ namespace PersonalBudgetManager.Api.Models
 {
     public class IncomeDTO
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         [Range(0.01, double.MaxValue, ErrorMessage = ErrorMessages.InvalidIncomeValue)]
         public required decimal Amount { get; set; }

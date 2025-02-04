@@ -11,5 +11,10 @@ namespace PersonalBudgetManager.Api.Services.Interfaces
             CancellationToken token
         );
         public Task<IEnumerable<IncomeDTO>> GetIncomes(int userId, CancellationToken token);
+        public Task<IncomeDTO> UpdateIncome(
+            IncomeDTO incomeDTO,
+            int userId,
+            CancellationToken token
+        );
     }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Azure.Messaging;
 using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -107,6 +108,53 @@ namespace PersonalBudgetManager.Api.Controllers
                 _logger.LogError(
                     "Error at \"{MethodName}\": {Message}",
                     nameof(RegisterIncome),
+                    message
+                );
+
+                return StatusCode(500, ErrorMessages.UnexpectedError);
+            }
+        }
+
+        [HttpPut]
+        [Authorize]
+        [Route("UpdateIncome")]
+        public async Task<IActionResult> UpdateIncome(IncomeDTO income, CancellationToken token)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (income.Id == null)
+                return BadRequest($"{ErrorMessages.ProvideParater}: {nameof(income.Id)}");
+            var userClaims = HttpContext.User;
+
+            if (userClaims.Identity?.Name is not string username)
+                return BadRequest(ErrorMessages.UserNotFound);
+
+            try
+            {
+                if (await _userService.FindByName(username, token) is not User user)
+                    return BadRequest(ErrorMessages.UserNotFound);
+
+                await _incomeService.UpdateIncome(income, user.Id, token);
+
+                return NoContent();
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(449, ErrorMessages.OperationCanceled);
+            }
+            catch (InvalidOperationException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                var incomeJson = JsonSerializer.Serialize(income);
+                var message = $"{e.Message}\nIncome details: {incomeJson}";
+
+                _logger.LogError(
+                    "Error at \"{MethodName}\": {Message}",
+                    nameof(UpdateIncome),
                     message
                 );
 

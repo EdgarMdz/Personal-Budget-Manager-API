@@ -90,29 +90,26 @@ builder.Services.AddControllers();
 builder.Services.AddLogging();
 
 // Adding dbcontext
-builder.Services.AddDbContext<AppDbContext>(
-    options =>
-    {
-        string connectionString =
-            Environment.GetEnvironmentVariable("PersonalBudgetManager_ConnectionString")
-            ?? throw new InvalidOperationException(
-                "The connection string for the database is not configured."
-            );
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    string connectionString =
+        Environment.GetEnvironmentVariable("PersonalBudgetManager_ConnectionString")
+        ?? throw new InvalidOperationException(
+            "The connection string for the database is not configured."
+        );
 
-        options.UseLazyLoadingProxies().UseSqlServer(connectionString);
-    },
-    ServiceLifetime.Singleton
-);
+    options.UseLazyLoadingProxies().UseSqlServer(connectionString);
+});
 
 //Adding services
-builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
-builder.Services.AddSingleton<IIncomeRepository, IncomeRepository>();
-builder.Services.AddSingleton<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
-builder.Services.AddSingleton<IUserService, UserService>();
-builder.Services.AddSingleton<IIncomeService, IncomeService>();
-builder.Services.AddSingleton<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IIncomeService, IncomeService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 var app = builder.Build();
 
