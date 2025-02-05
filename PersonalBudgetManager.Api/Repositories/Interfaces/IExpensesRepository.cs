@@ -2,8 +2,8 @@ using PersonalBudgetManager.Api.DataContext.Entities;
 
 namespace PersonalBudgetManager.Api.Repositories.Interfaces
 {
-    public interface IExpensesRepository
+    public interface IExpensesRepository : IRepository<Expense>
     {
-        public Task<IEnumerable<Expense>> GetExpencesForUser(int userid, CancellationToken token);
+        public Task<IEnumerable<Expense>> GetExpensesForUser(int userid, CancellationToken token);
     }
 }

@@ -11,7 +11,7 @@ namespace PersonalBudgetManager.Api.DataContext.Entities
         public required string Description { get; set; }
         public DateTime Date { get; set; }
 
-        public virtual required User User { get; set; }
+        public virtual User? User { get; set; }
         public virtual Category? Category { get; set; }
     }
 }

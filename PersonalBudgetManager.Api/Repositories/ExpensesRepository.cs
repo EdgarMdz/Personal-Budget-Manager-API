@@ -9,7 +9,7 @@ namespace PersonalBudgetManager.Api.Repositories
         : Repository<Expense>(context),
             IExpensesRepository
     {
-        public async Task<IEnumerable<Expense>> GetExpencesForUser(
+        public async Task<IEnumerable<Expense>> GetExpensesForUser(
             int userid,
             CancellationToken token
         ) =>

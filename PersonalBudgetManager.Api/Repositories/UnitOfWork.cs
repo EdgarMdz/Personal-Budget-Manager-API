@@ -8,7 +8,8 @@ namespace PersonalBudgetManager.Api.Repositories
     public class UnitOfWork(
         AppDbContext appDbContext,
         IIncomeRepository incomeRepository,
-        ICategoryRepository categoryRepository
+        ICategoryRepository categoryRepository,
+        IExpensesRepository expensesRepository
     ) : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _appDbContext = appDbContext;
@@ -17,6 +18,8 @@ namespace PersonalBudgetManager.Api.Repositories
         public IIncomeRepository IncomeRepository { get; } = incomeRepository;
 
         public ICategoryRepository CategoryRepository { get; } = categoryRepository;
+
+        public IExpensesRepository ExpensesRepository { get; } = expensesRepository;
 
         public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken token) =>
             await _appDbContext.Database.BeginTransactionAsync(token);

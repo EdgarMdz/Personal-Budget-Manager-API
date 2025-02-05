@@ -7,6 +7,7 @@ namespace PersonalBudgetManager.Api.Repositories.Interfaces
     {
         public IIncomeRepository IncomeRepository { get; }
         public ICategoryRepository CategoryRepository { get; }
+        public IExpensesRepository ExpensesRepository { get; }
 
         public Repository<T> GetRepository<T>()
             where T : class, IEntity;
