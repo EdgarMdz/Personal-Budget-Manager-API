@@ -7,7 +7,7 @@ namespace PersonalBudgetManager.Api.Common
         public const string InvalidToken = "Not valid token.";
         public const string InvalidUserCredentials = "User name or password are incorrect.";
         public const string NotRegisteredCategory = "The category is not registed yet.";
-        public const string NotRegisteredCIncome = "The income does not exist.";
+        public const string EntryNotFound = "Entry not found.";
         public const string OperationCanceled = "Operation canceled by the user.";
         public const string UnexpectedError = "An unexpected server error occurred.";
         public const string UserNotFound = "Operation not valid.";

@@ -31,8 +31,6 @@ namespace PersonalBudgetManager.Api.Services
 
                 transaction = await _unitOfWork.BeginTransactionAsync(token);
                 newIncome = await _repo.InsertAsync(newIncome, token);
-                await _unitOfWork.SaveChangesAsync(token);
-                await _unitOfWork.CommitTransactionAsync(token);
 
                 if (newIncome == null)
                     throw new InvalidOperationException(ErrorMessages.UnexpectedError);
@@ -105,7 +103,7 @@ namespace PersonalBudgetManager.Api.Services
             async Task<IncomeDTO> action()
             {
                 if (await _repo.GetByIdAsync(incomeId, token) is not Income income)
-                    throw new InvalidOperationException(ErrorMessages.NotRegisteredCIncome);
+                    throw new InvalidOperationException(ErrorMessages.EntryNotFound);
 
                 if (income.UserId != userId)
                     throw new UnauthorizedAccessException(ErrorMessages.UnauthorizedOperation);
@@ -186,9 +184,6 @@ namespace PersonalBudgetManager.Api.Services
 
                 if (await _repo.UpdateAsync(existingIncome, token) is not Income updatedIncome)
                     throw new InvalidOperationException(ErrorMessages.UnexpectedError);
-
-                await _unitOfWork.SaveChangesAsync(token);
-                await _unitOfWork.CommitTransactionAsync(token);
 
                 return new()
                 {
