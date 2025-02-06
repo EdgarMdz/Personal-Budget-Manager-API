@@ -94,7 +94,7 @@ namespace PersonalBudgetManager.Api.Services
             async Task<ExpenseDTO> action()
             {
                 if (await _repo.GetByIdAsync(expenseId, token) is not Expense expense)
-                    throw new InvalidOperationException(ErrorMessages.NotRegisteredCIncome);
+                    throw new InvalidOperationException(ErrorMessages.EntryNotFound);
 
                 if (expense.UserId != userId)
                     throw new UnauthorizedAccessException(ErrorMessages.UnauthorizedOperation);
@@ -173,9 +173,6 @@ namespace PersonalBudgetManager.Api.Services
 
                 if (await _repo.UpdateAsync(existingExpense, token) is not Expense updatedExpense)
                     throw new InvalidOperationException(ErrorMessages.UnexpectedError);
-
-                await _unitOfWork.SaveChangesAsync(token);
-                await _unitOfWork.CommitTransactionAsync(token);
 
                 return new()
                 {
