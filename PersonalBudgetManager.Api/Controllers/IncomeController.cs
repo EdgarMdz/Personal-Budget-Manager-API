@@ -13,7 +13,7 @@ namespace PersonalBudgetManager.Api.Controllers
         IUserService userService,
         IIncomeService incomeService,
         ICategoryService categoryService
-    ) : BaseController(_incomeLogger)
+    ) : BaseController(_incomeLogger, userService)
     {
         private readonly IUserService _userService = userService;
         private readonly IIncomeService _incomeService = incomeService;

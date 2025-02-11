@@ -6,7 +6,7 @@ namespace PersonalBudgetManager.Api.Controllers
 {
     [Route("[controller]")]
     public class UserController(ILogger<UserController> logger, IUserService userService)
-        : BaseController(logger)
+        : BaseController(logger, userService)
     {
         private readonly IUserService _userService = userService;
 

@@ -13,14 +13,14 @@ namespace PersonalBudgetManager.Api.Controllers
         ILogger<CategoryController> logger,
         IUserService userService,
         ICategoryService categoriesService
-    ) : BaseController(logger)
+    ) : BaseController(logger, userService)
     {
         private ICategoryService _categoriesService = categoriesService;
         private IUserService _userService = userService;
 
         [HttpGet]
         [Authorize]
-        [Route("GetAllCategories")]
+        [Route(ApiRoutes.GetAll)]
         public async Task<IActionResult> GetUserCategories(CancellationToken token)
         {
             var userClaims = HttpContext.User;
@@ -41,6 +41,26 @@ namespace PersonalBudgetManager.Api.Controllers
             }
 
             return await PerformActionSafely(action, null);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route(ApiRoutes.Create)]
+        public async Task<IActionResult> RegisterNewCategory(
+            CategoryDTO category,
+            CancellationToken token
+        )
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            async Task<IActionResult> action()
+            {
+                User user = await GetUser(HttpContext, token);
+                category = await _categoriesService.AddCategory(category, user.Id, token);
+                return Ok(category);
+            }
+            return await PerformActionSafely(action, category);
         }
     }
 }

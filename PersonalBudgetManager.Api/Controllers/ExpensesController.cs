@@ -13,7 +13,7 @@ namespace PersonalBudgetManager.Api.Controllers
         IUserService userService,
         IExpensesService expensesService,
         ICategoryService categoryService
-    ) : BaseController(logger)
+    ) : BaseController(logger, userService)
     {
         private readonly IUserService _userService = userService;
         private readonly IExpensesService _expensesService = expensesService;
