@@ -15,26 +15,37 @@ namespace PersonalBudgetManager.Api.Services
             CategoryDTO category,
             int id,
             CancellationToken token
-        ) =>
-            await PerformTransactionalOperation(
-                async () =>
-                {
-                    if (await _repo.FindUserCategory(id, category.Name, token) is not null)
-                        throw new DuplicateNameException(ErrorMessages.RepeatedName);
+        )
+        {
+            async Task<bool> CategoryAlreadyExistAction()
+            {
+                return await _repo.FindUserCategory(id, category.Name, token) != null;
+            }
 
-                    if (
-                        await _repo.InsertAsync(
-                            new Category() { Name = category.Name, UserId = id },
-                            token
-                        )
-                        is not Category newCat
+            async Task<Category> InsertCategoryAction()
+            {
+                if (
+                    await _repo.InsertAsync(
+                        new Category() { Name = category.Name, UserId = id },
+                        token
                     )
-                        throw new InvalidOperationException(ErrorMessages.UnexpectedError);
+                    is not Category newCat
+                )
+                    throw new InvalidOperationException(ErrorMessages.UnexpectedError);
 
-                    return new CategoryDTO() { Name = newCat.Name, Id = newCat.Id };
-                },
+                return newCat;
+            }
+
+            if (await PerformTransactionalOperation(CategoryAlreadyExistAction, token))
+                throw new DuplicateNameException(ErrorMessages.RepeatedName);
+
+            Category insertedCategory = await PerformTransactionalOperation(
+                InsertCategoryAction,
                 token
             );
+
+            return new CategoryDTO() { Name = insertedCategory.Name, Id = insertedCategory.Id };
+        }
 
         public async Task<IEnumerable<CategoryDTO>> GetUserCategories(
             int userId,

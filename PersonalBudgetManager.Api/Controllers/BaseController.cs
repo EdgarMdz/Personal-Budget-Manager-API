@@ -1,3 +1,4 @@
+using System.Data;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,10 @@ namespace PersonalBudgetManager.Api.Controllers
             catch (InvalidOperationException e)
             {
                 return NotFound(e.Message);
+            }
+            catch (DuplicateNameException e)
+            {
+                return Conflict(e.Message);
             }
             catch (Exception e)
             {
