@@ -15,8 +15,8 @@ namespace PersonalBudgetManager.Api.Controllers
         ICategoryService categoriesService
     ) : BaseController(logger, userService)
     {
-        private ICategoryService _categoriesService = categoriesService;
-        private IUserService _userService = userService;
+        private readonly ICategoryService _categoriesService = categoriesService;
+        private readonly IUserService _userService = userService;
 
         [HttpGet]
         [Authorize]
