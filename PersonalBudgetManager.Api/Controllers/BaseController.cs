@@ -54,6 +54,10 @@ namespace PersonalBudgetManager.Api.Controllers
             {
                 return Conflict(e.Message);
             }
+            catch (UnauthorizedAccessException e)
+            {
+                return Conflict(e.Message);
+            }
             catch (Exception e)
             {
                 var incomeJson = JsonSerializer.Serialize(parameters);

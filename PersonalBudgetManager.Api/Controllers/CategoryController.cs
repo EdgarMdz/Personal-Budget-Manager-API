@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Common;
@@ -86,6 +85,28 @@ namespace PersonalBudgetManager.Api.Controllers
             }
 
             return await PerformActionSafely(action, category);
+        }
+
+        [HttpDelete]
+        [Authorize]
+        [Route(ApiRoutes.Delete)]
+        public async Task<IActionResult> DeleteCategory(int categoryId, CancellationToken token)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (categoryId < 0)
+                return BadRequest(ErrorMessages.InvalidIdValue);
+
+            async Task<IActionResult> action()
+            {
+                User user = await GetUser(HttpContext, token);
+                await _categoriesService.DeleteCategory(categoryId, user.Id, token);
+
+                return NoContent();
+            }
+
+            return await PerformActionSafely(action, categoryId);
         }
     }
 }

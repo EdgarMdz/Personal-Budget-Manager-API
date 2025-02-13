@@ -13,20 +13,20 @@ namespace PersonalBudgetManager.Api.Services
 
         public async Task<CategoryDTO> AddCategory(
             CategoryDTO category,
-            int id,
+            int userId,
             CancellationToken token
         )
         {
             async Task<bool> CategoryAlreadyExistAction()
             {
-                return await _repo.FindUserCategory(id, category.Name, token) != null;
+                return await _repo.FindUserCategory(userId, category.Name, token) != null;
             }
 
             async Task<Category> InsertCategoryAction()
             {
                 if (
                     await _repo.InsertAsync(
-                        new Category() { Name = category.Name, UserId = id },
+                        new Category() { Name = category.Name, UserId = userId },
                         token
                     )
                     is not Category newCat
@@ -45,6 +45,30 @@ namespace PersonalBudgetManager.Api.Services
             );
 
             return new CategoryDTO() { Name = insertedCategory.Name, Id = insertedCategory.Id };
+        }
+
+        public async Task<CategoryDTO> DeleteCategory(
+            int categoryId,
+            int userId,
+            CancellationToken token
+        )
+        {
+            async Task<CategoryDTO> action()
+            {
+                if (
+                    await _repo.GetByIdAsync(categoryId, token) is not Category category
+                    || userId != category.UserId
+                )
+                    throw new UnauthorizedAccessException(ErrorMessages.UnauthorizedOperation);
+
+                category =
+                    await _repo.DeleteAsync(categoryId, token)
+                    ?? throw new InvalidOperationException(ErrorMessages.UnexpectedError);
+
+                return new CategoryDTO() { Id = category.Id, Name = category.Name };
+            }
+
+            return await PerformTransactionalOperation(action, token);
         }
 
         public async Task<IEnumerable<CategoryDTO>> GetUserCategories(
@@ -79,7 +103,7 @@ namespace PersonalBudgetManager.Api.Services
 
         public async Task<CategoryDTO> UpdateCategory(
             CategoryDTO category,
-            int id,
+            int userId,
             CancellationToken token
         )
         {
@@ -91,7 +115,7 @@ namespace PersonalBudgetManager.Api.Services
                         {
                             Id = category.Id,
                             Name = category.Name,
-                            UserId = id,
+                            UserId = userId,
                         },
                         token
                     )
