@@ -4,5 +4,7 @@ namespace PersonalBudgetManager.Api.Common
     {
         public const string Create = "RegisterNew";
         public const string GetAll = "GetAll";
+
+        public const string Modify = "Update";
     }
 }

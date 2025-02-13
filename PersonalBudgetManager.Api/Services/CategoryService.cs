@@ -76,5 +76,32 @@ namespace PersonalBudgetManager.Api.Services
                 async () => await _repo.FindUserCategory(userId, categoryName, token),
                 token
             );
+
+        public async Task<CategoryDTO> UpdateCategory(
+            CategoryDTO category,
+            int id,
+            CancellationToken token
+        )
+        {
+            async Task<CategoryDTO> action()
+            {
+                if (
+                    await _repo.UpdateAsync(
+                        new()
+                        {
+                            Id = category.Id,
+                            Name = category.Name,
+                            UserId = id,
+                        },
+                        token
+                    )
+                    is not Category updatedCat
+                )
+                    throw new InvalidOperationException(ErrorMessages.EntryNotFound);
+                return new CategoryDTO() { Name = updatedCat.Name, Id = updatedCat.Id };
+            }
+
+            return await PerformTransactionalOperation(action, token);
+        }
     }
 }

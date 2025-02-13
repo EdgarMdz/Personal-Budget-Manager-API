@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBudgetManager.Api.Common;
@@ -60,6 +61,30 @@ namespace PersonalBudgetManager.Api.Controllers
                 category = await _categoriesService.AddCategory(category, user.Id, token);
                 return Ok(category);
             }
+            return await PerformActionSafely(action, category);
+        }
+
+        [HttpPut]
+        [Authorize]
+        [Route(ApiRoutes.Modify)]
+        public async Task<IActionResult> UpdateCategory(
+            CategoryDTO category,
+            CancellationToken token
+        )
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (category.Id < 0)
+                return BadRequest(ErrorMessages.InvalidIdValue);
+
+            async Task<IActionResult> action()
+            {
+                User user = await GetUser(HttpContext, token);
+                await _categoriesService.UpdateCategory(category, user.Id, token);
+                return NoContent();
+            }
+
             return await PerformActionSafely(action, category);
         }
     }
