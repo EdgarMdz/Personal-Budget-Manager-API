@@ -12,6 +12,7 @@ namespace PersonalBudgetManager.Api.Common
         public const string UnexpectedError = "An unexpected server error occurred.";
         public const string UserNotFound = "Operation not valid.";
         public const string ProvideParater = "Missing necesary parameter.";
+        public const string RepeatedName = "There is already a record with the given name.";
         public const string UnauthorizedOperation = "User does not have access to this record.";
     }
 }

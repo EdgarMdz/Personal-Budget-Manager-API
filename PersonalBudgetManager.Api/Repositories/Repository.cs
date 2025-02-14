@@ -38,8 +38,8 @@ namespace PersonalBudgetManager.Api.Repositories
         {
             return PerformDatabaseOperation(async () =>
             {
-                var existingEntity = await GetByIdAsync(entity.Id, token);
-                if (existingEntity is not null)
+                var entityExist = await _dbSet.AnyAsync(c => c.Id == entity.Id, token);
+                if (entityExist)
                 {
                     _dbSet.Update(entity);
                     return entity;

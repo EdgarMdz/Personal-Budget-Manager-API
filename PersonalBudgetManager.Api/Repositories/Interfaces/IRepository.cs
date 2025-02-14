@@ -1,4 +1,3 @@
-using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories.Interfaces

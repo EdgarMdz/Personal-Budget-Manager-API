@@ -20,5 +20,10 @@ namespace PersonalBudgetManager.Api.Repositories
                         .Where(c => c.UserId == userId && c.Name == category)
                         .FirstOrDefaultAsync(token)
             );
+
+        public async Task<IEnumerable<Category>> GetCategoriesForUser(
+            int userId,
+            CancellationToken token
+        ) => await _dbSet.Where(c => c.UserId == userId).ToListAsync(token);
     }
 }
