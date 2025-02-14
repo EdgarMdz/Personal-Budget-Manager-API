@@ -71,6 +71,26 @@ namespace PersonalBudgetManager.Api.Services
             return await PerformTransactionalOperation(action, token);
         }
 
+        public async Task<CategoryDTO> GetById(int categoryId, int id, CancellationToken token)
+        {
+            async Task<CategoryDTO> action()
+            {
+                Category category =
+                    await _repo.GetByIdAsync(categoryId, token)
+                    ?? throw new InvalidOperationException(ErrorMessages.EntryNotFound);
+                ;
+
+                if (category.UserId != id)
+                    throw new UnauthorizedAccessException(ErrorMessages.UnauthorizedOperation);
+
+                CategoryDTO categoryDTO = new() { Id = category.Id, Name = category.Name };
+
+                return categoryDTO;
+            }
+
+            return await PerformTransactionalOperation(action, token);
+        }
+
         public async Task<IEnumerable<CategoryDTO>> GetUserCategories(
             int userId,
             CancellationToken token

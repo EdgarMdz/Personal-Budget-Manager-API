@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Build.Framework;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
@@ -104,6 +105,24 @@ namespace PersonalBudgetManager.Api.Controllers
                 await _categoriesService.DeleteCategory(categoryId, user.Id, token);
 
                 return NoContent();
+            }
+
+            return await PerformActionSafely(action, categoryId);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route(ApiRoutes.GetById)]
+        public async Task<IActionResult> GetCategoryById(int categoryId, CancellationToken token)
+        {
+            if (categoryId < 0)
+                return BadRequest(ErrorMessages.InvalidIdValue);
+
+            async Task<IActionResult> action()
+            {
+                User user = await GetUser(HttpContext, token);
+                CategoryDTO category = await _categoriesService.GetById(categoryId, user.Id, token);
+                return Ok(category);
             }
 
             return await PerformActionSafely(action, categoryId);
