@@ -24,16 +24,9 @@ namespace PersonalBudgetManager.Api.Controllers
         [Route(ApiRoutes.GetAll)]
         public async Task<IActionResult> GetUserIncomes(CancellationToken token)
         {
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string userName)
-                return BadRequest(ErrorMessages.InvalidToken);
-
             async Task<IActionResult> action()
             {
-                if (await _userService.FindByName(userName, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
-
+                User user = await GetUser(HttpContext, token);
                 var incomes = await _incomeService.GetIncomes(user.Id, token);
                 return Ok(incomes);
             }
@@ -49,16 +42,10 @@ namespace PersonalBudgetManager.Api.Controllers
             if (id < 0)
                 return BadRequest(ErrorMessages.InvalidIdValue);
 
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.InvalidIdValue);
-
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.InvalidIdValue);
+                    User user = await GetUser(HttpContext, token);
 
                     IncomeDTO income = await _incomeService.GetIncomeById(id, user.Id, token);
 
@@ -85,16 +72,11 @@ namespace PersonalBudgetManager.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
 
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.UserNotFound);
+                    User user = await GetUser(HttpContext, token);
 
                     if (
                         await _categoryService.GetUserCategory(user.Id, income.Category, token)
@@ -129,17 +111,11 @@ namespace PersonalBudgetManager.Api.Controllers
 
             if (income.Id == null)
                 return BadRequest($"{ErrorMessages.ProvideParater}: {nameof(income.Id)}");
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
 
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.UserNotFound);
-
+                    User user = await GetUser(HttpContext, token);
                     await _incomeService.UpdateIncome(income, user.Id, token);
 
                     return NoContent();
@@ -156,16 +132,9 @@ namespace PersonalBudgetManager.Api.Controllers
             if (id < 0)
                 return BadRequest(ErrorMessages.InvalidIdValue);
 
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
-
             async Task<IActionResult> action()
             {
-                if (await _userService.FindByName(username, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
-
+                User user = await GetUser(HttpContext, token);
                 await _incomeService.DeleteIncome(id, user.Id, token);
                 return NoContent();
             }
