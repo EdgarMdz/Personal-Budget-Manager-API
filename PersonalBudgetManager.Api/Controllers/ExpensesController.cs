@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Models;
@@ -25,15 +26,9 @@ namespace PersonalBudgetManager.Api.Controllers
         public async Task<IActionResult> GetUserExpenses(CancellationToken token)
         {
             var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string userName)
-                return BadRequest(ErrorMessages.InvalidToken);
-
             async Task<IActionResult> action()
             {
-                if (await _userService.FindByName(userName, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
-
+                User user = await GetUser(HttpContext, token);
                 var expenses = await _expensesService.GetExpenses(user.Id, token);
                 return Ok(expenses);
             }
@@ -49,16 +44,10 @@ namespace PersonalBudgetManager.Api.Controllers
             if (id < 0)
                 return BadRequest(ErrorMessages.InvalidIdValue);
 
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.InvalidIdValue);
-
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.InvalidIdValue);
+                    User user = await GetUser(HttpContext, token);
 
                     ExpenseDTO expense = await _expensesService.GetExpenseById(id, user.Id, token);
 
@@ -89,16 +78,10 @@ namespace PersonalBudgetManager.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
-
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.UserNotFound);
+                    User user = await GetUser(HttpContext, token);
 
                     if (
                         await _categoryService.GetUserCategory(user.Id, expense.Category, token)
@@ -134,16 +117,10 @@ namespace PersonalBudgetManager.Api.Controllers
             if (expense.Id == null)
                 return BadRequest($"{ErrorMessages.ProvideParater}: {nameof(expense.Id)}");
 
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
-
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.UserNotFound);
+                    User user = await GetUser(HttpContext, token);
 
                     await _expensesService.UpdateExpense(expense, user.Id, token);
 
@@ -161,16 +138,9 @@ namespace PersonalBudgetManager.Api.Controllers
             if (id < 0)
                 return BadRequest(ErrorMessages.InvalidIdValue);
 
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
-
             async Task<IActionResult> action()
             {
-                if (await _userService.FindByName(username, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
-
+                User user = await GetUser(HttpContext, token);
                 await _expensesService.DeleteExpense(id, user.Id, token);
                 return NoContent();
             }
