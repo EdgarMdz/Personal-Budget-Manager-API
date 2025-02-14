@@ -21,19 +21,12 @@ namespace PersonalBudgetManager.Api.Controllers
 
         [HttpGet]
         [Authorize]
-        [Route("GetAllIncomes")]
+        [Route(ApiRoutes.GetAll)]
         public async Task<IActionResult> GetUserIncomes(CancellationToken token)
         {
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string userName)
-                return BadRequest(ErrorMessages.InvalidToken);
-
             async Task<IActionResult> action()
             {
-                if (await _userService.FindByName(userName, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
-
+                User user = await GetUser(HttpContext, token);
                 var incomes = await _incomeService.GetIncomes(user.Id, token);
                 return Ok(incomes);
             }
@@ -43,22 +36,16 @@ namespace PersonalBudgetManager.Api.Controllers
 
         [HttpGet]
         [Authorize]
-        [Route("GetIncome")]
+        [Route(ApiRoutes.GetById)]
         public async Task<IActionResult> GetUserIncomeById(int id, CancellationToken token)
         {
             if (id < 0)
                 return BadRequest(ErrorMessages.InvalidIdValue);
 
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.InvalidIdValue);
-
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.InvalidIdValue);
+                    User user = await GetUser(HttpContext, token);
 
                     IncomeDTO income = await _incomeService.GetIncomeById(id, user.Id, token);
 
@@ -80,21 +67,16 @@ namespace PersonalBudgetManager.Api.Controllers
         /// <response code="500">An unexpected error occurred.</response>
         [HttpPost]
         [Authorize]
-        [Route("RegisterIncome")]
+        [Route(ApiRoutes.Create)]
         public async Task<IActionResult> RegisterIncome(IncomeDTO income, CancellationToken token)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
 
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.UserNotFound);
+                    User user = await GetUser(HttpContext, token);
 
                     if (
                         await _categoryService.GetUserCategory(user.Id, income.Category, token)
@@ -121,7 +103,7 @@ namespace PersonalBudgetManager.Api.Controllers
 
         [HttpPut]
         [Authorize]
-        [Route("UpdateIncome")]
+        [Route(ApiRoutes.Modify)]
         public async Task<IActionResult> UpdateIncome(IncomeDTO income, CancellationToken token)
         {
             if (!ModelState.IsValid)
@@ -129,17 +111,11 @@ namespace PersonalBudgetManager.Api.Controllers
 
             if (income.Id == null)
                 return BadRequest($"{ErrorMessages.ProvideParater}: {nameof(income.Id)}");
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
 
             return await PerformActionSafely(
                 async () =>
                 {
-                    if (await _userService.FindByName(username, token) is not User user)
-                        return BadRequest(ErrorMessages.UserNotFound);
-
+                    User user = await GetUser(HttpContext, token);
                     await _incomeService.UpdateIncome(income, user.Id, token);
 
                     return NoContent();
@@ -150,22 +126,15 @@ namespace PersonalBudgetManager.Api.Controllers
 
         [HttpDelete]
         [Authorize]
-        [Route("DeleteIncome")]
+        [Route(ApiRoutes.Delete)]
         public async Task<IActionResult> DeleteIncome(int id, CancellationToken token)
         {
             if (id < 0)
                 return BadRequest(ErrorMessages.InvalidIdValue);
 
-            var userClaims = HttpContext.User;
-
-            if (userClaims.Identity?.Name is not string username)
-                return BadRequest(ErrorMessages.UserNotFound);
-
             async Task<IActionResult> action()
             {
-                if (await _userService.FindByName(username, token) is not User user)
-                    return BadRequest(ErrorMessages.UserNotFound);
-
+                User user = await GetUser(HttpContext, token);
                 await _incomeService.DeleteIncome(id, user.Id, token);
                 return NoContent();
             }
