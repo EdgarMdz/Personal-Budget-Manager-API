@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.Models;
 using PersonalBudgetManager.Api.Services.Interfaces;
 
@@ -11,7 +12,7 @@ namespace PersonalBudgetManager.Api.Controllers
         private readonly IUserService _userService = userService;
 
         [HttpPost]
-        [Route("RegisterUser")]
+        [Route(ApiRoutes.Create)]
         public async Task<IActionResult> CreateUser(UserDTO user, CancellationToken token)
         {
             if (string.IsNullOrWhiteSpace(user.Password))
