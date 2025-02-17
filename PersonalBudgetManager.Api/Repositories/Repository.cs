@@ -61,8 +61,6 @@ namespace PersonalBudgetManager.Api.Repositories
             }
             catch (DbUpdateException ex)
             {
-                // Handle database update exceptions
-                // Log the exception or rethrow it
                 throw new Exception(
                     $"An error occurred while accessing the database: {ex.Message}",
                     ex
@@ -72,7 +70,7 @@ namespace PersonalBudgetManager.Api.Repositories
             {
                 // Handle operation canceled exceptions
                 // Log the exception or rethrow it
-                throw new Exception("The operation was canceled.", ex);
+                throw new OperationCanceledException("The operation was canceled.", ex);
             }
             catch (Exception ex)
             {
