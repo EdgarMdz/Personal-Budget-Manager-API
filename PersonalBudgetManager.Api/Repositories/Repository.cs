@@ -1,14 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using PersonalBudgetManager.Api.Common.Interfaces;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories
 {
-    public class Repository<T>(AppDbContext context) : IRepository<T>
+    public class Repository<T>(AppDbContext context, IDelayProvider delayProvider) : IRepository<T>
         where T : class, IEntity
     {
         protected readonly DbSet<T> _dbSet = context.Set<T>();
+        private readonly IDelayProvider _delayProvider = delayProvider;
 
         public async Task<T?> DeleteAsync(int id, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
@@ -30,6 +32,7 @@ namespace PersonalBudgetManager.Api.Repositories
         public async Task<T> InsertAsync(T entity, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
             {
+                await _delayProvider.DelayAsync(TimeSpan.FromSeconds(5), token);
                 var result = await _dbSet.AddAsync(entity, token);
                 return result.Entity;
             });
