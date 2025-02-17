@@ -114,7 +114,11 @@ builder.Services.AddScoped<IExpensesService, ExpensesService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
-builder.Services.AddSingleton<IDelayProvider, RealDelayProvider>();
+
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddSingleton<IDelayProvider, RealDelayProvider>();
+else
+    builder.Services.AddSingleton<IDelayProvider, NoDelayProvider>();
 
 var app = builder.Build();
 
