@@ -5,10 +5,17 @@ using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories
 {
-    public class Repository<T>(AppDbContext context) : IRepository<T>
+    public class Repository<T> : IRepository<T>
         where T : class, IEntity
     {
-        protected readonly DbSet<T> _dbSet = context.Set<T>();
+        private readonly AppDbContext _context;
+        protected readonly DbSet<T> _dbSet;
+
+        public Repository(AppDbContext context)
+        {
+            _context = context;
+            _dbSet = _context.Set<T>();
+        }
 
         public async Task<T?> DeleteAsync(int id, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
@@ -18,6 +25,9 @@ namespace PersonalBudgetManager.Api.Repositories
                     _dbSet.Remove(entity);
                 return entity;
             });
+
+        public Task<IEnumerable<T>> GetAllAsync(CancellationToken token) =>
+            PerformDatabaseOperation<IEnumerable<T>>(async () => await _dbSet.ToListAsync(token));
 
         public async Task<T?> GetByIdAsync(int id, CancellationToken token)
         {
@@ -48,8 +58,13 @@ namespace PersonalBudgetManager.Api.Repositories
             });
         }
 
-        protected static async Task<TResult> PerformDatabaseOperation<TResult>(
+        protected async Task<TResult> PerformDatabaseOperation<TResult>(
             Func<Task<TResult>> action
+        ) => await PerformDatabaseOperationHelper(action, _context);
+
+        protected static async Task<TResult> PerformDatabaseOperationHelper<TResult>(
+            Func<Task<TResult>> action,
+            AppDbContext context
         )
         {
             try
@@ -59,7 +74,7 @@ namespace PersonalBudgetManager.Api.Repositories
             catch (DbUpdateException ex)
             {
                 // Handle database update exceptions
-                // Log the exception or rethrow it
+                context.ChangeTracker.Clear();
                 throw new Exception(
                     $"An error occurred while accessing the database: {ex.Message}",
                     ex
@@ -68,18 +83,14 @@ namespace PersonalBudgetManager.Api.Repositories
             catch (OperationCanceledException ex)
             {
                 // Handle operation canceled exceptions
-                // Log the exception or rethrow it
                 throw new Exception("The operation was canceled.", ex);
             }
             catch (Exception ex)
             {
                 // Handle all other exceptions
-                // Log the exception or rethrow it
+                context.ChangeTracker.Clear();
                 throw new Exception($"An error occurred: {ex.Message}", ex);
             }
         }
-
-        public Task<IEnumerable<T>> GetAllAsync(CancellationToken token) =>
-            PerformDatabaseOperation<IEnumerable<T>>(async () => await _dbSet.ToListAsync(token));
     }
 }
