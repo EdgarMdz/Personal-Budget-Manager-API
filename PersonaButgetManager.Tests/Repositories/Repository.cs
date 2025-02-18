@@ -72,13 +72,14 @@ namespace PersonaButgetManager.Tests.Repositories
             // Arrange
             var testEntity = new TestEntity() { Name = "Test entity" };
             var token = CancellationToken.None;
+            string exceptionMessage = "Simulated DB error";
 
             _repositoryMock
                 .Setup(r => r.InsertAsync(It.IsAny<TestEntity>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new DbUpdateException("Simulated DB error"));
+                .ThrowsAsync(new DbUpdateException(exceptionMessage));
 
             // Act and assert
-            await Assert.ThrowsAnyAsync<Exception>(
+            var ex = await Assert.ThrowsAnyAsync<Exception>(
                 async () => await _repositoryMock.Object.InsertAsync(testEntity, token)
             );
         }
@@ -86,18 +87,21 @@ namespace PersonaButgetManager.Tests.Repositories
         [Fact]
         public async Task InsertAsync_WhenGenericExceptionOccurs_ThrowsException()
         {
-            // Arrange
+            //arrange
             var testEntity = new TestEntity() { Name = "Test entity" };
             var token = CancellationToken.None;
 
-            _repositoryMock
-                .Setup(r => r.InsertAsync(It.IsAny<TestEntity>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new Exception("Simulated generic exception"));
+            var dbContext = new TestDBContext();
+            var repo = new Repository<TestEntity>(dbContext, new RealDelayProvider());
 
-            // Act and Assert
-            await Assert.ThrowsAnyAsync<Exception>(
-                async () => await _repositoryMock.Object.InsertAsync(testEntity, token)
+            dbContext.Dispose(); //Closing the context will cause any DB operation to fail.
+
+            //Act and assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                async () => await repo.InsertAsync(testEntity, token)
             );
+
+            Assert.Contains($"An error occurred", ex.Message);
         }
     }
 
