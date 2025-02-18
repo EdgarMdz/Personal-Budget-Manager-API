@@ -32,7 +32,7 @@ namespace PersonalBudgetManager.Api.Repositories
         public async Task<T> InsertAsync(T entity, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
             {
-                await _delayProvider.DelayAsync(TimeSpan.FromSeconds(5), token);
+                await _delayProvider.DelayAsync(TimeSpan.FromMilliseconds(100), token);
                 var result = await _dbSet.AddAsync(entity, token);
                 return result.Entity;
             });
