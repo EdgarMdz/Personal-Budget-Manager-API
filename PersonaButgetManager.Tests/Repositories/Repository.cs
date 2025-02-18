@@ -82,6 +82,23 @@ namespace PersonaButgetManager.Tests.Repositories
                 async () => await _repositoryMock.Object.InsertAsync(testEntity, token)
             );
         }
+
+        [Fact]
+        public async Task InsertAsync_WhenGenericExceptionOccurs_ThrowsException()
+        {
+            // Arrange
+            var testEntity = new TestEntity() { Name = "Test entity" };
+            var token = CancellationToken.None;
+
+            _repositoryMock
+                .Setup(r => r.InsertAsync(It.IsAny<TestEntity>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception("Simulated generic exception"));
+
+            // Act and Assert
+            await Assert.ThrowsAnyAsync<Exception>(
+                async () => await _repositoryMock.Object.InsertAsync(testEntity, token)
+            );
+        }
     }
 
     public class TestEntity : IEntity
