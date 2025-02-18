@@ -5,6 +5,7 @@ using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
+using Xunit.Sdk;
 
 namespace PersonaButgetManager.Tests.Repositories
 {
@@ -85,16 +86,14 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task InsertAsync_WhenGenericExceptionOccurs_ThrowsException()
+        public async Task InsertAsync_WhenGenericExceptionOccurs_ThrowsException_AndContextIsClean()
         {
             //arrange
             var testEntity = new TestEntity() { Name = "Test entity" };
             var token = CancellationToken.None;
 
             var dbContext = new TestDBContext();
-            var repo = new Repository<TestEntity>(dbContext, new RealDelayProvider());
-
-            dbContext.Dispose(); //Closing the context will cause any DB operation to fail.
+            var repo = new Repository<TestEntity>(dbContext, null);
 
             //Act and assert
             var ex = await Assert.ThrowsAsync<Exception>(
@@ -102,24 +101,6 @@ namespace PersonaButgetManager.Tests.Repositories
             );
 
             Assert.Contains($"An error occurred", ex.Message);
-        }
-
-        [Fact]
-        public async Task InsertAsync_WhenExceptionOccurs_ContextIsClean()
-        {
-            // Arrange
-            var testEntity = new TestEntity { Name = "Test entity" };
-            var token = CancellationToken.None;
-
-            // Act & Assert
-            await Assert.ThrowsAsync<Exception>(async () =>
-            {
-                await _repository.InsertAsync(testEntity, token);
-                // Forcing an exception at save changes async
-                throw new Exception("Simulated exception");
-            });
-
-            // Ahora verificamos que el ChangeTracker está limpio.
             Assert.Empty(_dbcontext.ChangeTracker.Entries());
         }
     }
