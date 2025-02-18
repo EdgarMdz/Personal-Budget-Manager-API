@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using PersonalBudgetManager.Api.Common;
@@ -11,7 +12,7 @@ namespace PersonaButgetManager.Tests.Repositories
 {
     public class RepositoryTests : IDisposable
     {
-        private readonly AppDbContext _dbcontext;
+        private readonly TestDBContext _dbcontext;
         private readonly Repository<TestEntity> _repository;
         private readonly Mock<IRepository<TestEntity>> _repositoryMock;
 
@@ -101,6 +102,29 @@ namespace PersonaButgetManager.Tests.Repositories
             );
 
             Assert.Contains($"An error occurred", ex.Message);
+            Assert.Empty(_dbcontext.ChangeTracker.Entries());
+        }
+
+        [Fact]
+        public async Task DeleteAsync_DeleteEntityAndReturnsIt()
+        {
+            // Arrange
+            TestEntity testEntity = new() { Name = "Test entity" };
+            _dbcontext.TestEntities.Add(testEntity);
+            await _dbcontext.SaveChangesAsync();
+
+            // Act
+            var deletedEntity = await _repository.DeleteAsync(
+                testEntity.Id,
+                CancellationToken.None
+            );
+
+            await _dbcontext.SaveChangesAsync();
+
+            // Assert
+            Assert.NotNull(deletedEntity);
+            Assert.Equal(testEntity.Id, deletedEntity.Id);
+            Assert.Null(await _dbcontext.TestEntities.FindAsync(testEntity.Id));
             Assert.Empty(_dbcontext.ChangeTracker.Entries());
         }
     }
