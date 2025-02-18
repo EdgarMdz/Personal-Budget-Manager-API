@@ -127,6 +127,19 @@ namespace PersonaButgetManager.Tests.Repositories
             Assert.Null(await _dbcontext.TestEntities.FindAsync(testEntity.Id));
             Assert.Empty(_dbcontext.ChangeTracker.Entries());
         }
+
+        [Fact]
+        public async Task DeleteAsync_WhenIdDoesNotExists_ReturnNull()
+        {
+            //Arrange
+            var token = CancellationToken.None;
+
+            // Act
+            var deletedEntity = await _repository.DeleteAsync(12, token);
+
+            // Assert
+            Assert.Null(deletedEntity);
+        }
     }
 
     public class TestEntity : IEntity
