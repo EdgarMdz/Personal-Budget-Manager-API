@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories;
-using Xunit;
+using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonaButgetManager.Tests.Repositories
 {
@@ -11,11 +12,13 @@ namespace PersonaButgetManager.Tests.Repositories
     {
         private readonly AppDbContext _dbcontext;
         private readonly Repository<TestEntity> _repository;
+        private readonly Mock<IRepository<TestEntity>> _repositoryMock;
 
         public RepositoryTests()
         {
             _dbcontext = new TestDBContext();
             _repository = new(_dbcontext, new RealDelayProvider());
+            _repositoryMock = new();
         }
 
         public void Dispose()
@@ -61,6 +64,23 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
+        }
+
+        [Fact]
+        public async Task InsertAsync_WhenDbUpdateFails_ThrowsException()
+        {
+            // Arrange
+            var testEntity = new TestEntity() { Name = "Test entity" };
+            var token = CancellationToken.None;
+
+            _repositoryMock
+                .Setup(r => r.InsertAsync(It.IsAny<TestEntity>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new DbUpdateException("Simulated DB error"));
+
+            // Act and assert
+            await Assert.ThrowsAnyAsync<Exception>(
+                async () => await _repositoryMock.Object.InsertAsync(testEntity, token)
+            );
         }
     }
 
