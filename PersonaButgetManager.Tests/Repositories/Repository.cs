@@ -103,6 +103,25 @@ namespace PersonaButgetManager.Tests.Repositories
 
             Assert.Contains($"An error occurred", ex.Message);
         }
+
+        [Fact]
+        public async Task InsertAsync_WhenExceptionOccurs_ContextIsClean()
+        {
+            // Arrange
+            var testEntity = new TestEntity { Name = "Test entity" };
+            var token = CancellationToken.None;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<Exception>(async () =>
+            {
+                await _repository.InsertAsync(testEntity, token);
+                // Forcing an exception at save changes async
+                throw new Exception("Simulated exception");
+            });
+
+            // Ahora verificamos que el ChangeTracker está limpio.
+            Assert.Empty(_dbcontext.ChangeTracker.Entries());
+        }
     }
 
     public class TestEntity : IEntity
