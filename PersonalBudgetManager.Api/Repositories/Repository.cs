@@ -23,6 +23,7 @@ namespace PersonalBudgetManager.Api.Repositories
         public async Task<T?> DeleteAsync(int id, CancellationToken token) =>
             await PerformDatabaseOperation(async () =>
             {
+                await _delayProvider.DelayAsync(TimeSpan.FromMicroseconds(100), token);
                 T? entity = await GetByIdAsync(id, token);
                 if (entity != null)
                     _dbSet.Remove(entity);

@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -59,10 +60,10 @@ namespace PersonaButgetManager.Tests.Repositories
             var testEntity = new TestEntity { Name = "Test entity" };
             using var cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
-            var task = _repository.InsertAsync(testEntity, token);
 
             // Act
-            cancellationTokenSource.CancelAfter(50); // Cancela después de 50ms
+            cancellationTokenSource.Cancel();
+            var task = _repository.InsertAsync(testEntity, token);
 
             // Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
@@ -139,6 +140,21 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Assert
             Assert.Null(deletedEntity);
+        }
+
+        [Fact]
+        public async Task DeleteASync_WhenCanceledByTheUser_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+
+            // Act
+            tokenSource.Cancel();
+            var task = _repository.DeleteAsync(123, token);
+
+            // Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
         }
     }
 
