@@ -1,33 +1,23 @@
-using System.Data.Common;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories;
-using PersonalBudgetManager.Api.Repositories.Interfaces;
-using Xunit.Sdk;
 
 namespace PersonaButgetManager.Tests.Repositories
 {
     public class RepositoryTests : IDisposable
     {
         private readonly TestDBContext _dbcontext;
-        private readonly Repository<TestEntity> _repository;
-        private readonly Mock<IRepository<TestEntity>> _repositoryMock;
 
         public RepositoryTests()
         {
             _dbcontext = new TestDBContext();
-            _repository = new(_dbcontext, new RealDelayProvider());
-            _repositoryMock = new();
         }
 
         public void Dispose()
         {
             _dbcontext.Dispose();
-
             GC.SuppressFinalize(this);
         }
 
@@ -35,12 +25,13 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task InsertAsync_AddsEntityAndReturnsIt()
         {
             //arrange
+            var repo = new Repository<TestEntity>(_dbcontext);
             string entityName = "Test entity";
             var newEntity = new TestEntity() { Name = entityName };
             var token = CancellationToken.None;
 
             //act
-            var insertedEntity = await _repository.InsertAsync(newEntity, token);
+            var insertedEntity = await repo.InsertAsync(newEntity, token);
             await _dbcontext.SaveChangesAsync(token);
 
             //assert
@@ -60,10 +51,12 @@ namespace PersonaButgetManager.Tests.Repositories
             var testEntity = new TestEntity { Name = "Test entity" };
             using var cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
+            var delayProvider = new RealDelayProvider();
+            var repo = new Repository<TestEntity>(_dbcontext, delayProvider);
 
             // Act
             cancellationTokenSource.Cancel();
-            var task = _repository.InsertAsync(testEntity, token);
+            var task = repo.InsertAsync(testEntity, token);
 
             // Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
@@ -76,15 +69,15 @@ namespace PersonaButgetManager.Tests.Repositories
             var testEntity = new TestEntity() { Name = "Test entity" };
             var token = CancellationToken.None;
             string exceptionMessage = "Simulated DB error";
-
-            _repositoryMock
-                .Setup(r => r.InsertAsync(It.IsAny<TestEntity>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new DbUpdateException(exceptionMessage));
+            DbUpdateExceptionThrower exceptionThrower = new(exceptionMessage);
+            var repo = new Repository<TestEntity>(_dbcontext, exceptionThrower: exceptionThrower);
 
             // Act and assert
             var ex = await Assert.ThrowsAnyAsync<Exception>(
-                async () => await _repositoryMock.Object.InsertAsync(testEntity, token)
+                async () => await repo.InsertAsync(testEntity, token)
             );
+
+            Assert.Contains(exceptionMessage, ex.Message);
         }
 
         [Fact]
@@ -94,8 +87,9 @@ namespace PersonaButgetManager.Tests.Repositories
             var testEntity = new TestEntity() { Name = "Test entity" };
             var token = CancellationToken.None;
 
-            var dbContext = new TestDBContext();
-            var repo = new Repository<TestEntity>(dbContext, null);
+            var exceptionMessage = "Generic exception thrown for testing purposes";
+            GenericExceptionThrower exceptionThrower = new(exceptionMessage);
+            var repo = new Repository<TestEntity>(_dbcontext, exceptionThrower: exceptionThrower);
 
             //Act and assert
             var ex = await Assert.ThrowsAsync<Exception>(
@@ -114,11 +108,10 @@ namespace PersonaButgetManager.Tests.Repositories
             _dbcontext.TestEntities.Add(testEntity);
             await _dbcontext.SaveChangesAsync();
 
+            var repo = new Repository<TestEntity>(_dbcontext);
+
             // Act
-            var deletedEntity = await _repository.DeleteAsync(
-                testEntity.Id,
-                CancellationToken.None
-            );
+            var deletedEntity = await repo.DeleteAsync(testEntity.Id, CancellationToken.None);
 
             await _dbcontext.SaveChangesAsync();
 
@@ -134,9 +127,10 @@ namespace PersonaButgetManager.Tests.Repositories
         {
             //Arrange
             var token = CancellationToken.None;
+            var repo = new Repository<TestEntity>(_dbcontext);
 
             // Act
-            var deletedEntity = await _repository.DeleteAsync(12, token);
+            var deletedEntity = await repo.DeleteAsync(12, token);
 
             // Assert
             Assert.Null(deletedEntity);
@@ -149,9 +143,12 @@ namespace PersonaButgetManager.Tests.Repositories
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
 
+            var delayProvider = new RealDelayProvider();
+            var repo = new Repository<TestEntity>(_dbcontext, delayProvider);
+
             // Act
             tokenSource.Cancel();
-            var task = _repository.DeleteAsync(123, token);
+            var task = repo.DeleteAsync(123, token);
 
             // Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
