@@ -115,11 +115,6 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 
-if (builder.Environment.IsDevelopment())
-    builder.Services.AddSingleton<IDelayProvider, RealDelayProvider>();
-else
-    builder.Services.AddSingleton<IDelayProvider, NoDelayProvider>();
-
 var app = builder.Build();
 
 app.MapControllers();

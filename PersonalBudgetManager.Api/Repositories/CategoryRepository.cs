@@ -14,13 +14,15 @@ namespace PersonalBudgetManager.Api.Repositories
             int userId,
             string category,
             CancellationToken token
-        ) =>
-            await PerformDatabaseOperation(
-                async () =>
-                    await _dbSet
-                        .Where(c => c.UserId == userId && c.Name == category)
-                        .FirstOrDefaultAsync(token)
-            );
+        )
+        {
+            async Task<Category?> action(CancellationToken ct) =>
+                await _dbSet
+                    .Where(c => c.UserId == userId && c.Name == category)
+                    .FirstOrDefaultAsync(ct);
+
+            return await PerformDatabaseOperation(action, token);
+        }
 
         public async Task<IEnumerable<Category>> GetCategoriesForUser(
             int userId,
