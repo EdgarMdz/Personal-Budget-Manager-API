@@ -11,70 +11,103 @@ namespace PersonalBudgetManager.Api.Repositories
     {
         private readonly AppDbContext _context;
         protected readonly DbSet<T> _dbSet;
-        private readonly IDelayProvider _delayProvider;
+        private readonly IDelayProvider? _delayProvider;
+        private readonly IExceptionThrower? _exceptionThrower;
 
-        public Repository(AppDbContext context, IDelayProvider delayProvider)
+        public Repository(
+            AppDbContext context,
+            IDelayProvider? delayProvider = null,
+            IExceptionThrower? exceptionThrower = null
+        )
         {
             _context = context;
             _dbSet = _context.Set<T>();
             _delayProvider = delayProvider;
+            _exceptionThrower = exceptionThrower;
         }
 
-        public async Task<T?> DeleteAsync(int id, CancellationToken token) =>
-            await PerformDatabaseOperation(async () =>
+        public async Task<T?> DeleteAsync(int id, CancellationToken token)
+        {
+            async Task<T?> action(CancellationToken ct)
             {
-                await _delayProvider.DelayAsync(TimeSpan.FromMicroseconds(100), token);
-                T? entity = await GetByIdAsync(id, token);
+                T? entity = await GetByIdAsync(id, ct);
                 if (entity != null)
                     _dbSet.Remove(entity);
                 return entity;
-            });
+            }
 
-        public Task<IEnumerable<T>> GetAllAsync(CancellationToken token) =>
-            PerformDatabaseOperation<IEnumerable<T>>(async () => await _dbSet.ToListAsync(token));
+            return await PerformDatabaseOperation(action, token);
+        }
+
+        public async Task<IEnumerable<T>> GetAllAsync(CancellationToken token)
+        {
+            async Task<IEnumerable<T>> action(CancellationToken ct) => await _dbSet.ToListAsync(ct);
+
+            return await PerformDatabaseOperation(action, token);
+        }
 
         public async Task<T?> GetByIdAsync(int id, CancellationToken token)
         {
             if (id < 0)
                 throw new ArgumentException("Id must be greater than 0", nameof(id));
 
-            return await PerformDatabaseOperation(async () => await _dbSet.FindAsync([id], token));
+            async Task<T?> action(CancellationToken ct) => await _dbSet.FindAsync([id], ct);
+
+            return await PerformDatabaseOperation(action, token);
         }
 
-        public async Task<T> InsertAsync(T entity, CancellationToken token) =>
-            await PerformDatabaseOperation(async () =>
-            {
-                await _delayProvider.DelayAsync(TimeSpan.FromMilliseconds(100), token);
-                var result = await _dbSet.AddAsync(entity, token);
-                return result.Entity;
-            });
-
-        public Task<T?> UpdateAsync(T entity, CancellationToken token)
+        public async Task<T> InsertAsync(T entity, CancellationToken token)
         {
-            return PerformDatabaseOperation(async () =>
+            async Task<T> action(CancellationToken ct)
             {
-                var entityExist = await _dbSet.AnyAsync(c => c.Id == entity.Id, token);
+                var result = await _dbSet.AddAsync(entity, ct);
+                return result.Entity;
+            }
+            return await PerformDatabaseOperation(action, token);
+        }
+
+        public async Task<T?> UpdateAsync(T entity, CancellationToken token)
+        {
+            async Task<T?> action(CancellationToken ct)
+            {
+                var entityExist = await _dbSet.AnyAsync(c => c.Id == entity.Id, ct);
                 if (entityExist)
                 {
                     _dbSet.Update(entity);
                     return entity;
                 }
                 return null;
-            });
+            }
+            return await PerformDatabaseOperation(action, token);
         }
 
         protected async Task<TResult> PerformDatabaseOperation<TResult>(
-            Func<Task<TResult>> action
-        ) => await PerformDatabaseOperationHelper(action, _context);
+            Func<CancellationToken, Task<TResult>> action,
+            CancellationToken token
+        )
+        {
+            async Task<TResult> adaptedAction(CancellationToken ctoken)
+            {
+                if (_delayProvider != null)
+                    await _delayProvider.DelayAsync(TimeSpan.FromMilliseconds(1000), ctoken);
+
+                _exceptionThrower?.ThrowException();
+
+                return await action(ctoken);
+            }
+
+            return await PerformDatabaseOperationHelper(adaptedAction, token, _context);
+        }
 
         protected static async Task<TResult> PerformDatabaseOperationHelper<TResult>(
-            Func<Task<TResult>> action,
+            Func<CancellationToken, Task<TResult>> action,
+            CancellationToken token,
             AppDbContext context
         )
         {
             try
             {
-                return await action();
+                return await action(token);
             }
             catch (DbUpdateException ex)
             {

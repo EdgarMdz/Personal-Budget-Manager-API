@@ -13,13 +13,15 @@ namespace PersonalBudgetManager.Api.Repositories
         public async Task<IEnumerable<Income>> GetIncomesForUser(
             int userid,
             CancellationToken token
-        ) =>
-            await PerformDatabaseOperation(async () =>
-            {
-                return await _dbSet
+        )
+        {
+            async Task<IEnumerable<Income>> action(CancellationToken ct) =>
+                await _dbSet
                     .Where(income => income.UserId == userid)
                     .OrderByDescending(income => income.Date)
-                    .ToListAsync(token);
-            });
+                    .ToListAsync(ct);
+
+            return await PerformDatabaseOperation(action, token);
+        }
     }
 }

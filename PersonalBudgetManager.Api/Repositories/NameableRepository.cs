@@ -13,9 +13,12 @@ namespace PersonalBudgetManager.Api.Repositories
     {
         private readonly DbSet<T> _nameableSet = dbContext.Set<T>();
 
-        public async Task<T?> GetByNameAsync(string name, CancellationToken token) =>
-            await PerformDatabaseOperation(
-                async () => await _nameableSet.FirstOrDefaultAsync(e => e.Name == name)
-            );
+        public async Task<T?> GetByNameAsync(string name, CancellationToken token)
+        {
+            async Task<T?> action(CancellationToken ct) =>
+                await _nameableSet.FirstOrDefaultAsync(e => e.Name == name, ct);
+
+            return await PerformDatabaseOperation(action, token);
+        }
     }
 }
