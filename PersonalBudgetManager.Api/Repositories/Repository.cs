@@ -39,9 +39,14 @@ namespace PersonalBudgetManager.Api.Repositories
             return await PerformDatabaseOperation(action, token);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(CancellationToken token)
+        public async Task<IEnumerable<T>> GetAllAsync(
+            int pageNumber,
+            int pageSize,
+            CancellationToken token
+        )
         {
-            async Task<IEnumerable<T>> action(CancellationToken ct) => await _dbSet.ToListAsync(ct);
+            async Task<IEnumerable<T>> action(CancellationToken ct) =>
+                await _dbSet.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(ct);
 
             return await PerformDatabaseOperation(action, token);
         }

@@ -1,5 +1,3 @@
-using System.Data.Common;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using PersonalBudgetManager.Api.Common;
@@ -7,7 +5,6 @@ using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
-using Xunit.Sdk;
 
 namespace PersonaButgetManager.Tests.Repositories
 {

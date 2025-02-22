@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.Storage;
-using PersonalBudgetManager.Api.Common.Interfaces;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
@@ -8,14 +7,12 @@ namespace PersonalBudgetManager.Api.Repositories
 {
     public class UnitOfWork(
         AppDbContext appDbContext,
-        IDelayProvider delayProvider,
         IIncomeRepository incomeRepository,
         ICategoryRepository categoryRepository,
         IExpensesRepository expensesRepository
     ) : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _appDbContext = appDbContext;
-        private readonly IDelayProvider _delayProvider = delayProvider;
         private readonly Dictionary<Type, object> _repositories = [];
 
         public IIncomeRepository IncomeRepository { get; } = incomeRepository;
@@ -48,7 +45,7 @@ namespace PersonalBudgetManager.Api.Repositories
                 return (Repository<T>)value;
             else
             {
-                Repository<T> repo = new(_appDbContext, _delayProvider);
+                Repository<T> repo = new(_appDbContext);
                 _repositories.Add(repoType, repo);
                 return repo;
             }
@@ -63,7 +60,7 @@ namespace PersonalBudgetManager.Api.Repositories
                 return (NameableRepository<T>)value;
             else
             {
-                NameableRepository<T> repo = new(_appDbContext, delayProvider);
+                NameableRepository<T> repo = new(_appDbContext);
                 _repositories.Add(repoType, repo);
                 return repo;
             }
