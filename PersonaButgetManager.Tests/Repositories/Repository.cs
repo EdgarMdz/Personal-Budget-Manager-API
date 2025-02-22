@@ -1,3 +1,5 @@
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -152,6 +154,47 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ReturnsAllRegisteredEntities()
+        {
+            // Arrange
+            var newEntities = new TestEntity[]
+            {
+                new() { Name = "First Entity" },
+                new() { Name = "Second Entity" },
+                new() { Name = "Third Entity" },
+            };
+
+            //cleaning records
+            _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
+            await _dbcontext.SaveChangesAsync();
+
+            await _dbcontext.TestEntities.AddRangeAsync(newEntities);
+
+            await _dbcontext.SaveChangesAsync();
+
+            Repository<TestEntity> repo = new(_dbcontext);
+
+            CancellationToken token = CancellationToken.None;
+
+            // Act
+
+            IEnumerable<TestEntity> entities = await repo.GetAllAsync(token);
+
+            var expectedEntities = newEntities.OrderBy(e => e.Name).ToList();
+            var actualEntities = entities.OrderBy(e => e.Name).ToList();
+
+            // Assert
+
+            Assert.Equal(expectedEntities.Count, actualEntities.Count);
+
+            for (int i = 0; i < expectedEntities.Count; i++)
+            {
+                Assert.Equal(expectedEntities[i].Id, actualEntities[i].Id);
+                Assert.Equal(expectedEntities[i].Name, actualEntities[i].Name);
+            }
         }
     }
 
