@@ -6,8 +6,8 @@ using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories
 {
-    public class NameableRepository<T>(AppDbContext dbContext, IDelayProvider delayProvider)
-        : Repository<T>(dbContext, delayProvider),
+    public class NameableRepository<T>(AppDbContext dbContext)
+        : Repository<T>(dbContext),
             INameableRepository<T>
         where T : class, IEntity, IHasNameColumn
     {
