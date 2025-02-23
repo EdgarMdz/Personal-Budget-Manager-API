@@ -6,8 +6,8 @@ using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories
 {
-    public class NameableRepository<T>(AppDbContext dbContext)
-        : Repository<T>(dbContext),
+    public class NameableRepository<T>(AppDbContext dbContext, IStrategy strategy)
+        : Repository<T>(dbContext, strategy),
             INameableRepository<T>
         where T : class, IEntity, IHasNameColumn
     {

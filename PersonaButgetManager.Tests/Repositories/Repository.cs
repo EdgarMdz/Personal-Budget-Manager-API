@@ -17,7 +17,9 @@ namespace PersonaButgetManager.Tests.Repositories
         public RepositoryTests()
         {
             _dbcontext = new TestDBContext();
-            _repository = new(_dbcontext, new RealDelayProvider());
+
+            DelegateStrategy delegateStrategy = new((ct) => Task.CompletedTask);
+            _repository = new(_dbcontext, delegateStrategy);
             _repositoryMock = new();
         }
 

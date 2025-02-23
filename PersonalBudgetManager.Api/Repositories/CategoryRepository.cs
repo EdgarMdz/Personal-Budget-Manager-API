@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using PersonalBudgetManager.Api.Common.Interfaces;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories
 {
-    public class CategoryRepository(AppDbContext dbContext)
-        : Repository<Category>(dbContext),
+    public class CategoryRepository(AppDbContext dbContext, IStrategy strategy)
+        : Repository<Category>(dbContext, strategy),
             ICategoryRepository
     {
         public async Task<Category?> FindUserCategory(

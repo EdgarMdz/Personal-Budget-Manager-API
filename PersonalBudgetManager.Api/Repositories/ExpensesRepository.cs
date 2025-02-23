@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using PersonalBudgetManager.Api.Common.Interfaces;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using PersonalBudgetManager.Api.Repositories.Interfaces;
 
 namespace PersonalBudgetManager.Api.Repositories
 {
-    public class ExpensesRepository(AppDbContext context)
-        : Repository<Expense>(context),
+    public class ExpensesRepository(AppDbContext context, IStrategy strategy)
+        : Repository<Expense>(context, strategy),
             IExpensesRepository
     {
         public async Task<IEnumerable<Expense>> GetExpensesForUser(

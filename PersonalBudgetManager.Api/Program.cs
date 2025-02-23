@@ -112,6 +112,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<IExpensesService, ExpensesService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IStrategy>(_ => new DelegateStrategy((ct) => Task.CompletedTask));
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 
