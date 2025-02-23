@@ -11,19 +11,13 @@ namespace PersonalBudgetManager.Api.Repositories
     {
         private readonly AppDbContext _context;
         protected readonly DbSet<T> _dbSet;
-        private readonly IDelayProvider? _delayProvider;
-        private readonly IExceptionThrower? _exceptionThrower;
+        private readonly IStrategy _strategy;
 
-        public Repository(
-            AppDbContext context,
-            IDelayProvider? delayProvider = null,
-            IExceptionThrower? exceptionThrower = null
-        )
+        public Repository(AppDbContext context, IStrategy strategy)
         {
             _context = context;
             _dbSet = _context.Set<T>();
-            _delayProvider = delayProvider;
-            _exceptionThrower = exceptionThrower;
+            _strategy = strategy;
         }
 
         public async Task<T?> DeleteAsync(int id, CancellationToken token)
@@ -93,11 +87,7 @@ namespace PersonalBudgetManager.Api.Repositories
         {
             async Task<TResult> adaptedAction(CancellationToken ctoken)
             {
-                if (_delayProvider != null)
-                    await _delayProvider.DelayAsync(TimeSpan.FromMilliseconds(1000), ctoken);
-
-                _exceptionThrower?.ThrowException();
-
+                await _strategy.PerformTask(ctoken);
                 return await action(ctoken);
             }
 
