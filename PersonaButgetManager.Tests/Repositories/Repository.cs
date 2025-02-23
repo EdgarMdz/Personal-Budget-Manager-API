@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -22,14 +21,14 @@ namespace PersonaButgetManager.Tests.Repositories
             GC.SuppressFinalize(this);
         }
 
-        public static DelegateStrategy CreateProductionDelegateStrategy() =>
-            new((Ct) => Task.CompletedTask);
-
         [Fact]
         public async Task InsertAsync_AddsEntityAndReturnsIt()
         {
             //arrange
-            var repo = new Repository<TestEntity>(_dbcontext, CreateProductionDelegateStrategy());
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
 
             string entityName = "Test entity";
             var newEntity = new TestEntity() { Name = entityName };
@@ -54,10 +53,14 @@ namespace PersonaButgetManager.Tests.Repositories
         {
             // Arrange
             var testEntity = new TestEntity { Name = "Test entity" };
+
             using var cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
-            DelegateStrategy delegateStrategy = new((ct) => Task.Delay(5000, ct));
-            var repo = new Repository<TestEntity>(_dbcontext, delegateStrategy);
+
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.DelayStrategy(5000)
+            );
 
             // Act
             cancellationTokenSource.Cancel();
@@ -74,9 +77,10 @@ namespace PersonaButgetManager.Tests.Repositories
             var testEntity = new TestEntity() { Name = "Test entity" };
             var token = CancellationToken.None;
             string exceptionMessage = "Simulated DB error";
-            DelegateStrategy delegateStrategy = new(
-                (ct) => throw new DbUpdateException(exceptionMessage)
+            DelegateStrategy delegateStrategy = DelegatestrategyFactory.DbUpdateExceptionDelegate(
+                exceptionMessage
             );
+
             var repo = new Repository<TestEntity>(_dbcontext, delegateStrategy);
 
             // Act and assert
@@ -95,7 +99,9 @@ namespace PersonaButgetManager.Tests.Repositories
             var token = CancellationToken.None;
 
             var exceptionMessage = "Generic exception thrown for testing purposes";
-            DelegateStrategy delegateStrategy = new((ct) => throw new Exception(exceptionMessage));
+            DelegateStrategy delegateStrategy = DelegatestrategyFactory.ExceptionStrategy(
+                exceptionMessage
+            );
             var repo = new Repository<TestEntity>(_dbcontext, delegateStrategy);
 
             //Act and assert
@@ -115,7 +121,10 @@ namespace PersonaButgetManager.Tests.Repositories
             _dbcontext.TestEntities.Add(testEntity);
             await _dbcontext.SaveChangesAsync();
 
-            var repo = new Repository<TestEntity>(_dbcontext, CreateProductionDelegateStrategy());
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
 
             // Act
             var deletedEntity = await repo.DeleteAsync(testEntity.Id, CancellationToken.None);
@@ -134,7 +143,10 @@ namespace PersonaButgetManager.Tests.Repositories
         {
             //Arrange
             var token = CancellationToken.None;
-            var repo = new Repository<TestEntity>(_dbcontext, CreateProductionDelegateStrategy());
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
 
             // Act
             var deletedEntity = await repo.DeleteAsync(12, token);
@@ -150,7 +162,7 @@ namespace PersonaButgetManager.Tests.Repositories
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
 
-            DelegateStrategy delegateStrategy = new((ct) => Task.Delay(5000, ct));
+            DelegateStrategy delegateStrategy = DelegatestrategyFactory.DelayStrategy(5000);
             var repo = new Repository<TestEntity>(_dbcontext, delegateStrategy);
 
             // Act
@@ -180,7 +192,7 @@ namespace PersonaButgetManager.Tests.Repositories
 
             await _dbcontext.SaveChangesAsync();
 
-            Repository<TestEntity> repo = new(_dbcontext, CreateProductionDelegateStrategy());
+            Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
 
             CancellationToken token = CancellationToken.None;
 
@@ -217,5 +229,19 @@ namespace PersonaButgetManager.Tests.Repositories
             ) { }
 
         public DbSet<TestEntity> TestEntities { get; set; }
+    }
+
+    public static class DelegatestrategyFactory
+    {
+        public static DelegateStrategy NoOpStrategy() => new((ct) => Task.CompletedTask);
+
+        public static DelegateStrategy DelayStrategy(int miliSeconds) =>
+            new((ct) => Task.Delay(miliSeconds, ct));
+
+        public static DelegateStrategy ExceptionStrategy(string message) =>
+            new((ct) => throw new Exception(message));
+
+        public static DelegateStrategy DbUpdateExceptionDelegate(string message) =>
+            new((ct) => throw new DbUpdateException(message));
     }
 }
