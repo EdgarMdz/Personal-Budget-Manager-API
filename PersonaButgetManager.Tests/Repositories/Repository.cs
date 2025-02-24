@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -206,6 +207,33 @@ namespace PersonaButgetManager.Tests.Repositories
             // Assert
             Assert.Equal(pageSize, pagedEntities.Count());
             Assert.Equal("Entity 31", pagedEntities.First().Name);
+        }
+
+        [Fact]
+        public async Task GetAllPagedAsync_ReturnsEmptyList_WhenPageNumberIsOutOfRange()
+        {
+            // Arrange
+            var newEntities = Enumerable
+                .Range(1, 100)
+                .Select(i => new TestEntity() { Name = $"Entity {i}" })
+                .ToList();
+
+            _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
+            await _dbcontext.SaveChangesAsync();
+
+            await _dbcontext.AddRangeAsync(newEntities);
+            await _dbcontext.SaveChangesAsync();
+
+            Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
+            var token = CancellationToken.None;
+            int pageSize = 10;
+            int pageNumber = 100;
+
+            // Act
+            var pagedEntities = await repo.GetAllAsync(pageNumber, pageSize, token);
+
+            // Assert
+            Assert.Empty(pagedEntities);
         }
     }
 
