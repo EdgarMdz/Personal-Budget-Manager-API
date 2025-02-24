@@ -290,6 +290,22 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
+        public async Task GetAllAsync_ThrowsArgumentOutOfRangeException_WhenPageSizeIsZero()
+        {
+            // Arrange
+            Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
+
+            int pageNumber = 1;
+            int pageSize = 0;
+            var token = CancellationToken.None;
+
+            // Act and assert
+            await Assert.ThrowsAnyAsync<ArgumentOutOfRangeException>(
+                async () => await repo.GetAllAsync(pageNumber, pageSize, token)
+            );
+        }
+
+        [Fact]
         public async Task GetAllAsync_ThrowsArgumentOutOfRangeException_WhenPageSizeIsNegative()
         {
             // Arrange
