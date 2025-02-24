@@ -149,10 +149,15 @@ namespace PersonaButgetManager.Tests.Repositories
                 DelegatestrategyFactory.NoOpStrategy()
             );
 
+            _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
+            await _dbcontext.SaveChangesAsync();
+
             // Act
             var deletedEntity = await repo.DeleteAsync(12, token);
 
             // Assert
+
+
             Assert.Null(deletedEntity);
         }
 
@@ -234,6 +239,71 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Assert
             Assert.Empty(pagedEntities);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ReturnsEmptyList_WhenPageNumberIsNegative()
+        {
+            // Arrange
+            var newEtities = Enumerable
+                .Range(0, 100)
+                .Select(i => new TestEntity() { Name = $"Entity {i}" })
+                .ToList();
+
+            _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
+            await _dbcontext.SaveChangesAsync();
+
+            await _dbcontext.TestEntities.AddRangeAsync(_dbcontext.TestEntities);
+            await _dbcontext.SaveChangesAsync();
+
+            Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
+
+            int pageNumber = -1;
+            int pageSize = 10;
+            var token = CancellationToken.None;
+
+            // Act
+            var pagedEntities = await repo.GetAllAsync(pageNumber, pageSize, token);
+
+            // Assert
+            Assert.Empty(pagedEntities);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ReturnsEmptyList_WhenNoRecordsInDatabase()
+        {
+            // Arrange
+            _dbcontext.RemoveRange(_dbcontext.TestEntities);
+            await _dbcontext.SaveChangesAsync();
+
+            Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
+
+            int pageNumber = 0;
+            int pageSize = 10;
+            var token = CancellationToken.None;
+
+            // Act
+
+            var pagedEntities = await repo.GetAllAsync(pageNumber, pageSize, token);
+
+            // Assert
+            Assert.Empty(pagedEntities);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ThrowsArgumentOutOfRangeException_WhenOageSizeIsNegative()
+        {
+            // Arrange
+            Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
+
+            int pageNumber = 1;
+            int pageSize = -12;
+            var token = CancellationToken.None;
+
+            // Act and assert
+            await Assert.ThrowsAnyAsync<ArgumentOutOfRangeException>(
+                async () => await repo.GetAllAsync(pageNumber, pageSize, token)
+            );
         }
     }
 
