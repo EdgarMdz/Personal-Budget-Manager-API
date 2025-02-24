@@ -305,6 +305,29 @@ namespace PersonaButgetManager.Tests.Repositories
                 async () => await repo.GetAllAsync(pageNumber, pageSize, token)
             );
         }
+
+        [Fact]
+        public async Task GetAllAsync_WhenDbUpdateFails_ThrowsException()
+        {
+            // Arrange
+            var exceptionMessage = "Simulated exception";
+            Repository<TestEntity> repo = new(
+                _dbcontext,
+                DelegatestrategyFactory.DbUpdateExceptionDelegate(exceptionMessage)
+            );
+
+            var token = CancellationToken.None;
+            int pageNumber = 1;
+            int pageSize = 1;
+
+            // Act and Assert
+
+            var exception = await Assert.ThrowsAnyAsync<Exception>(
+                async () => await repo.GetAllAsync(pageNumber, pageSize, token)
+            );
+
+            Assert.Contains(exceptionMessage, exception.Message);
+        }
     }
 
     public class TestEntity : IEntity
