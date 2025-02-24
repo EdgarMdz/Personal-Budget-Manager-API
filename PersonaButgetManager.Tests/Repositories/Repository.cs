@@ -21,6 +21,15 @@ namespace PersonaButgetManager.Tests.Repositories
             GC.SuppressFinalize(this);
         }
 
+        private async Task ResetDb(IEnumerable<TestEntity> entities)
+        {
+            _dbcontext.RemoveRange(_dbcontext.TestEntities);
+            await _dbcontext.SaveChangesAsync();
+
+            await _dbcontext.AddRangeAsync(entities);
+            await _dbcontext.SaveChangesAsync();
+        }
+
         [Fact]
         public async Task InsertAsync_AddsEntityAndReturnsIt()
         {
@@ -142,21 +151,18 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task DeleteAsync_WhenIdDoesNotExists_ReturnNull()
         {
             //Arrange
+            await ResetDb([]);
+
             var token = CancellationToken.None;
             var repo = new Repository<TestEntity>(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
             );
 
-            _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
-            await _dbcontext.SaveChangesAsync();
-
             // Act
             var deletedEntity = await repo.DeleteAsync(12, token);
 
             // Assert
-
-
             Assert.Null(deletedEntity);
         }
 
@@ -232,12 +238,7 @@ namespace PersonaButgetManager.Tests.Repositories
                 .ToList();
 
             //cleaning records
-            _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
-            await _dbcontext.SaveChangesAsync();
-
-            await _dbcontext.TestEntities.AddRangeAsync(newEntities);
-
-            await _dbcontext.SaveChangesAsync();
+            await ResetDb(newEntities);
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
 
@@ -266,11 +267,7 @@ namespace PersonaButgetManager.Tests.Repositories
                 .Select(i => new TestEntity() { Name = $"Entity {i}" })
                 .ToList();
 
-            _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
-            await _dbcontext.SaveChangesAsync();
-
-            await _dbcontext.AddRangeAsync(newEntities);
-            await _dbcontext.SaveChangesAsync();
+            await ResetDb(newEntities);
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
             var token = CancellationToken.None;
@@ -293,11 +290,7 @@ namespace PersonaButgetManager.Tests.Repositories
                 .Select(i => new TestEntity() { Name = $"Entity {i}" })
                 .ToList();
 
-            _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
-            await _dbcontext.SaveChangesAsync();
-
-            await _dbcontext.TestEntities.AddRangeAsync(newEtities);
-            await _dbcontext.SaveChangesAsync();
+            await ResetDb(newEtities);
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
 
@@ -316,8 +309,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetAllAsync_WhenNoRecordsInDatabase_ReturnsEmptyList()
         {
             // Arrange
-            _dbcontext.RemoveRange(_dbcontext.TestEntities);
-            await _dbcontext.SaveChangesAsync();
+            await ResetDb([]);
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
 
