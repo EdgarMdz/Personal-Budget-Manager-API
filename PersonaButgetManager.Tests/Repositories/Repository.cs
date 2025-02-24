@@ -258,7 +258,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllPagedAsync_ReturnsEmptyList_WhenPageNumberIsOutOfRange()
+        public async Task GetAllPagedAsync_WhenPageNumberIsOutOfRange_ReturnsEmptyList()
         {
             // Arrange
             var newEntities = Enumerable
@@ -285,7 +285,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_ReturnsEmptyList_WhenPageNumberIsNegative()
+        public async Task GetAllAsync_WhenPageNumberIsNegative_ReturnsEmptyList()
         {
             // Arrange
             var newEtities = Enumerable
@@ -313,7 +313,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_ReturnsEmptyList_WhenNoRecordsInDatabase()
+        public async Task GetAllAsync_WhenNoRecordsInDatabase_ReturnsEmptyList()
         {
             // Arrange
             _dbcontext.RemoveRange(_dbcontext.TestEntities);
@@ -334,7 +334,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_ThrowsArgumentOutOfRangeException_WhenPageSizeIsZero()
+        public async Task GetAllAsync_WhenPageSizeIsZero_ThrowsArgumentOutOfRangeException()
         {
             // Arrange
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
@@ -350,7 +350,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_ThrowsArgumentOutOfRangeException_WhenPageSizeIsNegative()
+        public async Task GetAllAsync_WhenPageSizeIsNegative_ThrowsArgumentOutOfRangeException()
         {
             // Arrange
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
@@ -366,7 +366,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_ThrowsOperationCancelException_WhenCanceledByTheUser()
+        public async Task GetAllAsync_WhenCanceledByTheUser_ThrowsOperationCancelException()
         {
             // Arrange
             Repository<TestEntity> repo = new(
