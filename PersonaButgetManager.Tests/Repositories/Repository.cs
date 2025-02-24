@@ -296,7 +296,7 @@ namespace PersonaButgetManager.Tests.Repositories
             _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
             await _dbcontext.SaveChangesAsync();
 
-            await _dbcontext.TestEntities.AddRangeAsync(_dbcontext.TestEntities);
+            await _dbcontext.TestEntities.AddRangeAsync(newEtities);
             await _dbcontext.SaveChangesAsync();
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
