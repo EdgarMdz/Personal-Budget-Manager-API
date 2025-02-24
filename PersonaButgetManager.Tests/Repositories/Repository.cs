@@ -291,7 +291,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_ThrowsArgumentOutOfRangeException_WhenOageSizeIsNegative()
+        public async Task GetAllAsync_ThrowsArgumentOutOfRangeException_WhenPageSizeIsNegative()
         {
             // Arrange
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
