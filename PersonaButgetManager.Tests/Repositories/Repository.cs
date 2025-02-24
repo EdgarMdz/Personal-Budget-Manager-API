@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -302,6 +301,28 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Act and assert
             await Assert.ThrowsAnyAsync<ArgumentOutOfRangeException>(
+                async () => await repo.GetAllAsync(pageNumber, pageSize, token)
+            );
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ThrowsOperationCancelException_WhenCanceledByTheUser()
+        {
+            // Arrange
+            Repository<TestEntity> repo = new(
+                _dbcontext,
+                DelegatestrategyFactory.DelayStrategy(5000)
+            );
+
+            int pageNumber = 1;
+            int pageSize = 10;
+            CancellationTokenSource tokenSource = new();
+            var token = tokenSource.Token;
+
+            tokenSource.Cancel();
+
+            // Act and assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
                 async () => await repo.GetAllAsync(pageNumber, pageSize, token)
             );
         }
