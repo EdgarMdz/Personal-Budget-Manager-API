@@ -1,4 +1,7 @@
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
@@ -359,6 +362,28 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Act and Assert
 
+            var exception = await Assert.ThrowsAnyAsync<Exception>(
+                async () => await repo.GetAllAsync(pageNumber, pageSize, token)
+            );
+
+            Assert.Contains(exceptionMessage, exception.Message);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_WhenGenericExceptionOccurs_ThrowsException()
+        {
+            // Arrange
+            string exceptionMessage = "Simulated exception";
+            Repository<TestEntity> repo = new(
+                _dbcontext,
+                DelegatestrategyFactory.ExceptionStrategy(exceptionMessage)
+            );
+
+            int pageSize = 1;
+            int pageNumber = 1;
+            var token = CancellationToken.None;
+
+            // Act and assert
             var exception = await Assert.ThrowsAnyAsync<Exception>(
                 async () => await repo.GetAllAsync(pageNumber, pageSize, token)
             );
