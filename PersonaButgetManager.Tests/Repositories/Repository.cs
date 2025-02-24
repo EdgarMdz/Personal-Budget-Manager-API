@@ -1,7 +1,4 @@
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
@@ -164,7 +161,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task DeleteASync_WhenCanceledByTheUser_ThrowsOperationCanceledException()
+        public async Task DeleteAsync_WhenCanceledByTheUser_ThrowsOperationCanceledException()
         {
             // Arrange
             var tokenSource = new CancellationTokenSource();
@@ -179,6 +176,50 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_WhenDbUpdateFails_ThrowsException()
+        {
+            // Arrange
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+            var exceptionMessage = "Simulated Exception";
+            DelegateStrategy delegateStrategy = DelegatestrategyFactory.DbUpdateExceptionDelegate(
+                exceptionMessage
+            );
+            var repo = new Repository<TestEntity>(_dbcontext, delegateStrategy);
+
+            // Act
+            tokenSource.Cancel();
+            var task = repo.DeleteAsync(123, token);
+
+            // Assert
+            var exception = await Assert.ThrowsAsync<Exception>(async () => await task);
+            Assert.Contains(exceptionMessage, exception.Message);
+            Assert.Empty(_dbcontext.ChangeTracker.Entries());
+        }
+
+        [Fact]
+        public async Task DeleteASync_GenericExceptionOccurs_ThrowsException()
+        {
+            // Arrange
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+            var exceptionMessage = "Simulated Exception";
+            DelegateStrategy delegateStrategy = DelegatestrategyFactory.ExceptionStrategy(
+                exceptionMessage
+            );
+            var repo = new Repository<TestEntity>(_dbcontext, delegateStrategy);
+
+            // Act
+            tokenSource.Cancel();
+            var task = repo.DeleteAsync(123, token);
+
+            // Assert
+            var exception = await Assert.ThrowsAsync<Exception>(async () => await task);
+            Assert.Contains(exceptionMessage, exception.Message);
+            Assert.Empty(_dbcontext.ChangeTracker.Entries());
         }
 
         [Fact]
