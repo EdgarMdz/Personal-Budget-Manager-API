@@ -177,12 +177,10 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetAllAsync_ReturnsAllRegisteredEntities()
         {
             // Arrange
-            var newEntities = new TestEntity[]
-            {
-                new() { Name = "First Entity" },
-                new() { Name = "Second Entity" },
-                new() { Name = "Third Entity" },
-            };
+            var newEntities = Enumerable
+                .Range(1, 100)
+                .Select(i => new TestEntity() { Name = $"Entity {i}" })
+                .ToList();
 
             //cleaning records
             _dbcontext.TestEntities.RemoveRange(_dbcontext.TestEntities);
@@ -195,23 +193,19 @@ namespace PersonaButgetManager.Tests.Repositories
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
 
             CancellationToken token = CancellationToken.None;
+            int pageNumber = 4;
+            int pageSize = 10;
 
             // Act
-
-            IEnumerable<TestEntity> entities = await repo.GetAllAsync(1, 3, token);
-
-            var expectedEntities = newEntities.OrderBy(e => e.Name).ToList();
-            var actualEntities = entities.OrderBy(e => e.Name).ToList();
+            IEnumerable<TestEntity> pagedEntities = await repo.GetAllAsync(
+                pageNumber,
+                pageSize,
+                token
+            );
 
             // Assert
-
-            Assert.Equal(expectedEntities.Count, actualEntities.Count);
-
-            for (int i = 0; i < expectedEntities.Count; i++)
-            {
-                Assert.Equal(expectedEntities[i].Id, actualEntities[i].Id);
-                Assert.Equal(expectedEntities[i].Name, actualEntities[i].Name);
-            }
+            Assert.Equal(pageSize, pagedEntities.Count());
+            Assert.Equal("Entity 31", pagedEntities.First().Name);
         }
     }
 
