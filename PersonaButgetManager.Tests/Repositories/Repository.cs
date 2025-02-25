@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
@@ -259,7 +261,7 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllPagedAsync_WhenPageNumberIsOutOfRange_ReturnsEmptyList()
+        public async Task GetAllAsync_WhenPageNumberIsOutOfRange_ReturnsEmptyList()
         {
             // Arrange
             var newEntities = Enumerable
@@ -422,6 +424,32 @@ namespace PersonaButgetManager.Tests.Repositories
             );
 
             Assert.Contains(exceptionMessage, exception.Message);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenIdExists_ReturnsEntity()
+        {
+            // Arrange
+            var newEntities = Enumerable
+                .Range(1, 10000)
+                .Select(i => new TestEntity() { Name = $"Entity {i}" });
+
+            await ResetDb(newEntities);
+
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            int id = 9800;
+            var token = CancellationToken.None;
+
+            // Act
+            var entity = await repo.GetByIdAsync(id, token);
+
+            // Assert
+            Assert.NotNull(entity);
+            Assert.Equal(newEntities.Skip(id - 1).First().Name, entity.Name);
         }
     }
 
