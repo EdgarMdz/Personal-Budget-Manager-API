@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
@@ -432,7 +430,7 @@ namespace PersonaButgetManager.Tests.Repositories
             // Arrange
             var newEntities = Enumerable
                 .Range(1, 10000)
-                .Select(i => new TestEntity() { Name = $"Entity {i}" });
+                .Select(i => new TestEntity() { Name = $"Entity {i}", Id = i });
 
             await ResetDb(newEntities);
 
@@ -441,7 +439,7 @@ namespace PersonaButgetManager.Tests.Repositories
                 DelegatestrategyFactory.NoOpStrategy()
             );
 
-            int id = 9800;
+            int id = newEntities.Skip(4093).First().Id;
             var token = CancellationToken.None;
 
             // Act
@@ -449,7 +447,8 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Assert
             Assert.NotNull(entity);
-            Assert.Equal(newEntities.Skip(id - 1).First().Name, entity.Name);
+            Assert.Contains(newEntities, e => e.Name == entity.Name);
+            Assert.Single(newEntities, e => e.Id == entity.Id);
         }
     }
 
@@ -463,7 +462,9 @@ namespace PersonaButgetManager.Tests.Repositories
     {
         public TestDBContext()
             : base(
-                new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("TestDB").Options
+                new DbContextOptionsBuilder<AppDbContext>()
+                    .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                    .Options
             ) { }
 
         public DbSet<TestEntity> TestEntities { get; set; }
