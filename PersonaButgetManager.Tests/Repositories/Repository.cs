@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -449,6 +450,27 @@ namespace PersonaButgetManager.Tests.Repositories
             Assert.NotNull(entity);
             Assert.Contains(newEntities, e => e.Name == entity.Name);
             Assert.Single(newEntities, e => e.Id == entity.Id);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenIdNotExists_ReturnsNull()
+        {
+            // Arrange
+            await ResetDb([]);
+
+            int id = 123;
+            CancellationToken token = CancellationToken.None;
+
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            // Act
+            var entity = await repo.GetByIdAsync(id, token);
+
+            // Assert
+            Assert.Null(entity);
         }
     }
 
