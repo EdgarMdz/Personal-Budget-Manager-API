@@ -472,6 +472,28 @@ namespace PersonaButgetManager.Tests.Repositories
             // Assert
             Assert.Null(entity);
         }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenIdIsNegative_ThrowsArgumentException()
+        {
+            // Arrange
+            await ResetDb([]);
+
+            int id = -112;
+            CancellationToken token = CancellationToken.None;
+
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            // Act and assert
+
+            var ex = await Assert.ThrowsAnyAsync<ArgumentException>(
+                async () => await repo.GetByIdAsync(id, token)
+            );
+            Assert.Contains("Id must be greater than 0", ex.Message);
+        }
     }
 
     public class TestEntity : IEntity
