@@ -9,7 +9,7 @@ namespace PersonaButgetManager.Tests.Repositories
 {
     public class RepositoryTests : IDisposable
     {
-        private readonly TestDBContext _dbcontext;
+        private TestDBContext _dbcontext;
 
         public RepositoryTests()
         {
@@ -24,8 +24,7 @@ namespace PersonaButgetManager.Tests.Repositories
 
         private async Task ResetDb(IEnumerable<TestEntity> entities)
         {
-            _dbcontext.RemoveRange(_dbcontext.TestEntities);
-            await _dbcontext.SaveChangesAsync();
+            _dbcontext = new TestDBContext();
 
             await _dbcontext.AddRangeAsync(entities);
             await _dbcontext.SaveChangesAsync();
@@ -612,6 +611,27 @@ namespace PersonaButgetManager.Tests.Repositories
 
             //Assert
             Assert.Null(updatedEntity);
+            Assert.Empty(_dbcontext.ChangeTracker.Entries());
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WhenCanceledByTheUser_ThrowsOperationCanceledException()
+        {
+            //Arrange
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+            var id = 123;
+            var entity = new TestEntity() { Id = id, Name = "Test entity" };
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.DelayStrategy(5000)
+            );
+
+            //Act and assert
+            tokenSource.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await repo.UpdateAsync(entity, token)
+            );
         }
     }
 
