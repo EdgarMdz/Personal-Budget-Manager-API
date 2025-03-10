@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -493,6 +492,26 @@ namespace PersonaButgetManager.Tests.Repositories
                 async () => await repo.GetByIdAsync(id, token)
             );
             Assert.Contains("Id must be greater than 0", ex.Message);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenCanceledByTheUser_ThrowsOperationCanceledException()
+        {
+            //Arrange
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+            var id = 123;
+
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.DelayStrategy(5000)
+            );
+
+            // Act and assert
+            tokenSource.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await repo.GetByIdAsync(id, token)
+            );
         }
     }
 
