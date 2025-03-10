@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -591,6 +592,26 @@ namespace PersonaButgetManager.Tests.Repositories
             Assert.NotNull(entityFromDb);
             Assert.Equal(id, entityFromDb.Id);
             Assert.Equal(newName, entityFromDb.Name);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WhenIdDoesNotExist_ReturnsNull()
+        {
+            //Arrange
+            await ResetDb([]);
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            var entity = new TestEntity() { Id = 123, Name = "Test entity" };
+            var token = CancellationToken.None;
+
+            //Act
+            var updatedEntity = await repo.UpdateAsync(entity, token);
+
+            //Assert
+            Assert.Null(updatedEntity);
         }
     }
 
