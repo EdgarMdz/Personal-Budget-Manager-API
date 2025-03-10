@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -555,6 +553,44 @@ namespace PersonaButgetManager.Tests.Repositories
             );
 
             Assert.Contains(exceptionMessage, ex.Message);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WhenIdExist_ReturnsIt()
+        {
+            //Arrange
+            var newEntities = Enumerable
+                .Range(1, 1000)
+                .Select(i => new TestEntity() { Name = $"Entity {i}", Id = i });
+
+            await ResetDb(newEntities);
+
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            var id = 50;
+            string newName = "Updated entity";
+            var token = CancellationToken.None;
+            var entity =
+                await repo.GetByIdAsync(id, token)
+                ?? throw new InvalidOperationException("Entity with ID {id} not found.");
+
+            entity.Name = newName;
+
+            //Act
+            var updatedEntity = await repo.UpdateAsync(entity, token);
+
+            //Assert
+            Assert.NotNull(updatedEntity);
+            Assert.Equal(id, updatedEntity.Id);
+            Assert.Equal(newName, updatedEntity.Name);
+
+            var entityFromDb = await repo.GetByIdAsync(id, token);
+            Assert.NotNull(entityFromDb);
+            Assert.Equal(id, entityFromDb.Id);
+            Assert.Equal(newName, entityFromDb.Name);
         }
     }
 
