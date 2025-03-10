@@ -633,6 +633,32 @@ namespace PersonaButgetManager.Tests.Repositories
                 async () => await repo.UpdateAsync(entity, token)
             );
         }
+
+        [Fact]
+        public async Task UpdateAsync_WhenDbUpdateFails_ThrowsException()
+        {
+            //Arrange
+            string exceptionMessage = "Simulated Exception";
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.DbUpdateExceptionDelegate(exceptionMessage)
+            );
+
+            var id = 123;
+            var cancellationToken = CancellationToken.None;
+
+            //Act and assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                async () =>
+                    await repo.UpdateAsync(
+                        new TestEntity() { Id = id, Name = "Test entity" },
+                        cancellationToken
+                    )
+            );
+
+            Assert.Contains(exceptionMessage, ex.Message);
+            Assert.Empty(_dbcontext.ChangeTracker.Entries());
+        }
     }
 
     public class TestEntity : IEntity
