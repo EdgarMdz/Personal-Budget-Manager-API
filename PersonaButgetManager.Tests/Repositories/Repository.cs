@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -512,6 +513,26 @@ namespace PersonaButgetManager.Tests.Repositories
             await Assert.ThrowsAnyAsync<OperationCanceledException>(
                 async () => await repo.GetByIdAsync(id, token)
             );
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenDbUpdateFails_ThrowsAsync()
+        {
+            //Arrange
+            var id = 123;
+            var token = CancellationToken.None;
+            string exceptionMessage = "Simulated Exception";
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.DbUpdateExceptionDelegate(exceptionMessage)
+            );
+
+            // Act and assert
+            var ex = await Assert.ThrowsAnyAsync<Exception>(
+                async () => await repo.GetByIdAsync(id, token)
+            );
+
+            Assert.Contains(exceptionMessage, ex.Message);
         }
     }
 
