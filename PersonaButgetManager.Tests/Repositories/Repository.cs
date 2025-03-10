@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
@@ -529,6 +530,27 @@ namespace PersonaButgetManager.Tests.Repositories
 
             // Act and assert
             var ex = await Assert.ThrowsAnyAsync<Exception>(
+                async () => await repo.GetByIdAsync(id, token)
+            );
+
+            Assert.Contains(exceptionMessage, ex.Message);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenGenericExceptionOccurs_ThrowsException()
+        {
+            //Arrage
+            string exceptionMessage = "Simulated Exception";
+            var repo = new Repository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.ExceptionStrategy(exceptionMessage)
+            );
+
+            int id = 123;
+            var token = CancellationToken.None;
+
+            // Act and assert
+            var ex = await Assert.ThrowsAsync<Exception>(
                 async () => await repo.GetByIdAsync(id, token)
             );
 
