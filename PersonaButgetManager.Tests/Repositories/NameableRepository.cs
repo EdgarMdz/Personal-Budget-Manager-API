@@ -1,5 +1,6 @@
 using PersonaButgetManager.Tests.Common.Entities;
 using PersonaButgetManager.Tests.Common.Factories;
+using PersonalBudgetManager.Api.Repositories;
 
 namespace PersonaButgetManager.Tests.Repositories
 {
@@ -10,7 +11,7 @@ namespace PersonaButgetManager.Tests.Repositories
         {
             // Arrange
             var newEntities = await ResetDb(10000);
-            var repo = new PersonalBudgetManager.Api.Repositories.NameableRepository<TestEntity>(
+            var repo = new NameableRepository<TestEntity>(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
             );
@@ -25,6 +26,26 @@ namespace PersonaButgetManager.Tests.Repositories
             Assert.NotNull(result);
             Assert.Equal(entity.Id, result.Id);
             Assert.Equal(entity.Name, result.Name);
+        }
+
+        [Fact]
+        public async Task GetByNameAsync_WhenNameNotExists_ReturnsNull()
+        {
+            //Arrange
+            await ResetDb(10000);
+            var repo = new NameableRepository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            var token = CancellationToken.None;
+            string name = "NotExists";
+
+            //Act
+            var result = await repo.GetByNameAsync(name, token);
+
+            //Assert
+            Assert.Null(result);
         }
     }
 }
