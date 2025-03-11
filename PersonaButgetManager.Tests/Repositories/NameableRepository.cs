@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using PersonaButgetManager.Tests.Common.Entities;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.Repositories;
@@ -46,6 +47,28 @@ namespace PersonaButgetManager.Tests.Repositories
 
             //Assert
             Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task GetByNameAsync_WhenCanceledByTheUser_ThrowsOperationCanceledException()
+        {
+            //Arrange
+            var repo = new NameableRepository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.DelayStrategy(5000)
+            );
+
+            CancellationTokenSource tokenSource = new();
+            var token = tokenSource.Token;
+            string name = "NotExists";
+
+            //Act and assert
+            tokenSource.Cancel();
+            var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await repo.GetByNameAsync(name, token)
+            );
+
+            Assert.NotNull(ex);
         }
     }
 }
