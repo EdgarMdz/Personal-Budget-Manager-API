@@ -21,12 +21,20 @@ namespace PersonaButgetManager.Tests.Repositories
             GC.SuppressFinalize(this);
         }
 
-        private async Task ResetDb(IEnumerable<TestEntity> entities)
+        private async Task<IEnumerable<TestEntity>> ResetDb(int numberOfEntities)
         {
+            ArgumentOutOfRangeException.ThrowIfNegative(numberOfEntities, nameof(numberOfEntities));
+
             _dbcontext = new TestDBContext();
+
+            var entities = Enumerable
+                .Range(1, numberOfEntities)
+                .Select(i => new TestEntity() { Name = $"Entity {i}", Id = i });
 
             await _dbcontext.AddRangeAsync(entities);
             await _dbcontext.SaveChangesAsync();
+
+            return entities;
         }
 
         [Fact]
@@ -150,7 +158,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task DeleteAsync_WhenIdDoesNotExists_ReturnNull()
         {
             //Arrange
-            await ResetDb([]);
+            await ResetDb(0);
 
             var token = CancellationToken.None;
             var repo = new Repository<TestEntity>(
@@ -231,13 +239,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetAllAsync_ReturnsAllRegisteredEntities()
         {
             // Arrange
-            var newEntities = Enumerable
-                .Range(1, 100)
-                .Select(i => new TestEntity() { Name = $"Entity {i}" })
-                .ToList();
-
-            //cleaning records
-            await ResetDb(newEntities);
+            await ResetDb(100);
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
 
@@ -261,12 +263,9 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetAllAsync_WhenPageNumberIsOutOfRange_ReturnsEmptyList()
         {
             // Arrange
-            var newEntities = Enumerable
-                .Range(1, 100)
-                .Select(i => new TestEntity() { Name = $"Entity {i}" })
-                .ToList();
 
-            await ResetDb(newEntities);
+
+            await ResetDb(100);
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
             var token = CancellationToken.None;
@@ -284,12 +283,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetAllAsync_WhenPageNumberIsNegative_ReturnsEmptyList()
         {
             // Arrange
-            var newEtities = Enumerable
-                .Range(0, 100)
-                .Select(i => new TestEntity() { Name = $"Entity {i}" })
-                .ToList();
-
-            await ResetDb(newEtities);
+            await ResetDb(100);
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
 
@@ -308,7 +302,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetAllAsync_WhenNoRecordsInDatabase_ReturnsEmptyList()
         {
             // Arrange
-            await ResetDb([]);
+            await ResetDb(0);
 
             Repository<TestEntity> repo = new(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
 
@@ -427,11 +421,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetByIdAsync_WhenIdExists_ReturnsEntity()
         {
             // Arrange
-            var newEntities = Enumerable
-                .Range(1, 10000)
-                .Select(i => new TestEntity() { Name = $"Entity {i}", Id = i });
-
-            await ResetDb(newEntities);
+            var newEntities = await ResetDb(10000);
 
             var repo = new Repository<TestEntity>(
                 _dbcontext,
@@ -454,7 +444,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetByIdAsync_WhenIdNotExists_ReturnsNull()
         {
             // Arrange
-            await ResetDb([]);
+            await ResetDb(0);
 
             int id = 123;
             CancellationToken token = CancellationToken.None;
@@ -475,7 +465,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetByIdAsync_WhenIdIsNegative_ThrowsArgumentException()
         {
             // Arrange
-            await ResetDb([]);
+            await ResetDb(0);
 
             int id = -112;
             CancellationToken token = CancellationToken.None;
@@ -558,11 +548,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task UpdateAsync_WhenIdExist_ReturnsIt()
         {
             //Arrange
-            var newEntities = Enumerable
-                .Range(1, 1000)
-                .Select(i => new TestEntity() { Name = $"Entity {i}", Id = i });
-
-            await ResetDb(newEntities);
+            await ResetDb(1000);
 
             var repo = new Repository<TestEntity>(
                 _dbcontext,
@@ -596,7 +582,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task UpdateAsync_WhenIdDoesNotExist_ReturnsNull()
         {
             //Arrange
-            await ResetDb([]);
+            await ResetDb(0);
             var repo = new Repository<TestEntity>(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
