@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using PersonaButgetManager.Tests.Common.Entities;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
-using PersonalBudgetManager.Api.DataContext.Interfaces;
 using PersonalBudgetManager.Api.Repositories;
 
 namespace PersonaButgetManager.Tests.Repositories
@@ -685,12 +685,6 @@ namespace PersonaButgetManager.Tests.Repositories
             Assert.Contains(exceptionMessage, ex.Message);
             Assert.Empty(_dbcontext.ChangeTracker.Entries());
         }
-    }
-
-    public class TestEntity : IEntity
-    {
-        public int Id { get; set; }
-        public required string Name { get; set; }
     }
 
     public class TestDBContext : AppDbContext
