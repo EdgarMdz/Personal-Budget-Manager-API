@@ -9,12 +9,13 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetByNameAsync_WhenNameExists_ReturnsEntity()
         {
             // Arrange
-            await ResetDb(10000);
+            var newEntities = await ResetDb(10000);
             var repo = new PersonalBudgetManager.Api.Repositories.NameableRepository<TestEntity>(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
             );
-            var entity = _dbcontext.TestEntities.Where(e => e.Id == 9999).First();
+
+            var entity = newEntities.Last();
             var token = CancellationToken.None;
 
             //Act
