@@ -1,8 +1,7 @@
-using Microsoft.EntityFrameworkCore;
+using PersonaButgetManager.Tests.Common.Data;
 using PersonaButgetManager.Tests.Common.Entities;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.Common;
-using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.Repositories;
 
 namespace PersonaButgetManager.Tests.Repositories
@@ -685,17 +684,5 @@ namespace PersonaButgetManager.Tests.Repositories
             Assert.Contains(exceptionMessage, ex.Message);
             Assert.Empty(_dbcontext.ChangeTracker.Entries());
         }
-    }
-
-    public class TestDBContext : AppDbContext
-    {
-        public TestDBContext()
-            : base(
-                new DbContextOptionsBuilder<AppDbContext>()
-                    .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                    .Options
-            ) { }
-
-        public DbSet<TestEntity> TestEntities { get; set; }
     }
 }
