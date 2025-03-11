@@ -70,5 +70,25 @@ namespace PersonaButgetManager.Tests.Repositories
 
             Assert.NotNull(ex);
         }
+
+        [Fact]
+        public async Task GetByNameAsync_WhenGenericExceptionOccurs_ThrowsException()
+        {
+            // Arrange
+            string exceptionMessage = "Simulated exception";
+            var repo = new NameableRepository<TestEntity>(
+                _dbcontext,
+                DelegatestrategyFactory.ExceptionStrategy(exceptionMessage)
+            );
+            var token = CancellationToken.None;
+            string name = "NotExists";
+
+            //Act and assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                async () => await repo.GetByNameAsync(name, token)
+            );
+            Assert.NotNull(ex);
+            Assert.Contains(exceptionMessage, ex.Message);
+        }
     }
 }
