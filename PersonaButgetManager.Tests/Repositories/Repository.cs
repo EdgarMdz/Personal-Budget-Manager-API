@@ -6,35 +6,11 @@ using PersonalBudgetManager.Api.Repositories;
 
 namespace PersonaButgetManager.Tests.Repositories
 {
-    public class RepositoryTests : IDisposable
+    public class RepositoryTests : BaseTest, IDisposable
     {
-        private TestDBContext _dbcontext;
-
         public RepositoryTests()
         {
             _dbcontext = new TestDBContext();
-        }
-
-        public void Dispose()
-        {
-            _dbcontext.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        private async Task<IEnumerable<TestEntity>> ResetDb(int numberOfEntities)
-        {
-            ArgumentOutOfRangeException.ThrowIfNegative(numberOfEntities, nameof(numberOfEntities));
-
-            _dbcontext = new TestDBContext();
-
-            var entities = Enumerable
-                .Range(1, numberOfEntities)
-                .Select(i => new TestEntity() { Name = $"Entity {i}", Id = i });
-
-            await _dbcontext.AddRangeAsync(entities);
-            await _dbcontext.SaveChangesAsync();
-
-            return entities;
         }
 
         [Fact]
