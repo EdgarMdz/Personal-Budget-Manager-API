@@ -1,5 +1,5 @@
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.Common;
 using PersonalBudgetManager.Api.DataContext;
 using PersonalBudgetManager.Api.DataContext.Interfaces;
@@ -703,19 +703,5 @@ namespace PersonaButgetManager.Tests.Repositories
             ) { }
 
         public DbSet<TestEntity> TestEntities { get; set; }
-    }
-
-    public static class DelegatestrategyFactory
-    {
-        public static DelegateStrategy NoOpStrategy() => new((ct) => Task.CompletedTask);
-
-        public static DelegateStrategy DelayStrategy(int miliSeconds) =>
-            new((ct) => Task.Delay(miliSeconds, ct));
-
-        public static DelegateStrategy ExceptionStrategy(string message) =>
-            new((ct) => throw new Exception(message));
-
-        public static DelegateStrategy DbUpdateExceptionDelegate(string message) =>
-            new((ct) => throw new DbUpdateException(message));
     }
 }
