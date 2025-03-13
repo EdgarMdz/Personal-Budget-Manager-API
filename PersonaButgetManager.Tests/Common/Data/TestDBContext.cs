@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PersonaButgetManager.Tests.Common.Entities;
 using PersonalBudgetManager.Api.DataContext;
+using PersonalBudgetManager.Api.DataContext.Entities;
 
 namespace PersonaButgetManager.Tests.Common.Data
 {
@@ -14,5 +15,7 @@ namespace PersonaButgetManager.Tests.Common.Data
             ) { }
 
         public DbSet<TestEntity> TestEntities { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }
