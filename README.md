@@ -162,7 +162,7 @@ This project demonstrates my ability to:
 
 ## Contact
 
-If you have any questions or would like to discuss this project further, feel free to reach out to me via **[LinkedIn](https://www.linkedin.com/in/your-profile)**.
+If you have any questions or would like to discuss this project further, feel free to reach out to me via **[LinkedIn](https://www.linkedin.com/in/edgarmdz/)**.
 
 Thank you for reviewing my project! I look forward to discussing how my skills can contribute to your team.
 
