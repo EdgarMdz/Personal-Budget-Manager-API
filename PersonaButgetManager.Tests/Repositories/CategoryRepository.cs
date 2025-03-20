@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using CategpryRepoAPI = PersonalBudgetManager.Api.Repositories;
@@ -148,6 +146,36 @@ namespace PersonaButgetManager.Tests.Repositories
 
             //Assert
             Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task FindUserCategory_WhenCanceledByTheUser_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            await ResetDb(0);
+
+            var repo = new CategpryRepoAPI.CategoryRepository(
+                _dbcontext,
+                DelegatestrategyFactory.DelayStrategy(5000)
+            );
+
+            var category = new Category()
+            {
+                UserId = 50,
+                Name = "TestCategory 50",
+                Id = 50,
+            };
+            var cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+
+            //Act and assert
+            cancellationTokenSource.Cancel();
+
+            var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await repo.FindUserCategory(category.UserId, category.Name, token)
+            );
+
+            Assert.NotNull(ex);
         }
     }
 }
