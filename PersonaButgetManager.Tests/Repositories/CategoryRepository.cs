@@ -117,5 +117,37 @@ namespace PersonaButgetManager.Tests.Repositories
             //Assert
             Assert.Null(result);
         }
+
+        [Fact]
+        public async Task FindUserCategory_WhenUserIdExistsAndCategoryNameNot_ReturnsNull()
+        {
+            //Arrange
+            await ResetDb(0);
+
+            var repo = new CategpryRepoAPI.CategoryRepository(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            var categories = Enumerable
+                .Range(1, 100)
+                .Select(i => new Category()
+                {
+                    Name = $"TestCategory {i}",
+                    UserId = i,
+                    Id = i,
+                });
+            await _dbcontext.Categories.AddRangeAsync(categories);
+            await _dbcontext.SaveChangesAsync();
+
+            var category = new Category() { UserId = 50, Name = "TestCategory 500" };
+            var token = CancellationToken.None;
+
+            //Act
+            var result = await repo.FindUserCategory(category.UserId, category.Name, token);
+
+            //Assert
+            Assert.Null(result);
+        }
     }
 }
