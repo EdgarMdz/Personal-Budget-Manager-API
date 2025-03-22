@@ -8,10 +8,14 @@ namespace PersonaButgetManager.Tests.Repositories
     {
         protected TestDBContext _dbcontext;
 
-        public BaseTest()
-        {
-            _dbcontext = new TestDBContext();
-        }
+        private static readonly Dictionary<Type, Func<int, IEnumerable<object>>> EntityFactory =
+            new()
+            {
+                { typeof(TestEntity), TestEntityRecordsFactory.CreateTestEntities },
+                { typeof(Category), TestEntityRecordsFactory.CreateCategories },
+            };
+
+        public BaseTest() => _dbcontext = new TestDBContext();
 
         public void Dispose()
         {
@@ -26,17 +30,11 @@ namespace PersonaButgetManager.Tests.Repositories
 
             await _dbcontext.Database.EnsureDeletedAsync();
             await _dbcontext.Database.EnsureCreatedAsync();
-            IEnumerable<T> entities = typeof(T).Name switch
-            {
-                nameof(TestEntity) => TestEntityRecordsFactory.CreateTestEntities(numberOfEntities)
-                    as IEnumerable<T>
-                    ?? [],
-                nameof(Category) => TestEntityRecordsFactory.CreateCategories(numberOfEntities)
-                    as IEnumerable<T>
-                    ?? [],
-                _ => throw new ArgumentException("Invalid entity type"),
-            };
-            ;
+
+            if (!EntityFactory.TryGetValue(typeof(T), out var factory))
+                throw new ArgumentException($"There is not factory defined for {typeof(T).Name}");
+
+            var entities = factory(numberOfEntities).Cast<T>();
 
             await _dbcontext.Set<T>().AddRangeAsync(entities);
             await _dbcontext.SaveChangesAsync();
