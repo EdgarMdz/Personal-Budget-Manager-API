@@ -159,6 +159,30 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         [Fact]
+        public async Task FindUserCategory_WhenDBUpdateFails_ThrowsException()
+        {
+            // Arrange
+            await ResetDb<Category>(0);
+
+            var exceptionMessage = "simulated exception";
+
+            var repo = new CategpryRepoAPI.CategoryRepository(
+                _dbcontext,
+                DelegatestrategyFactory.DbUpdateExceptionDelegate(exceptionMessage)
+            );
+
+            var token = CancellationToken.None;
+            var categoryName = "TestCategory";
+            var userid = 50;
+
+            //Act and assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                async () => await repo.FindUserCategory(userid, categoryName, token)
+            );
+            Assert.Contains(exceptionMessage, ex.Message);
+        }
+
+        [Fact]
         public async Task GetCategoriesForUser_WhenUserExistAndHasCategories_ReturnsCategories()
         {
             // Arrange
