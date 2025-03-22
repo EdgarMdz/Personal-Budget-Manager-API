@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using CategpryRepoAPI = PersonalBudgetManager.Api.Repositories;
@@ -14,24 +13,13 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task FindUserCategory_WhenUserIdAmongMultipleUsersAndCategoryNameExist_ReturnsLastCategory()
         {
             // Arrange
-            await ResetDb(0);
+            var categories = await ResetDb<Category>(100);
 
             var _categoryRepository = new CategpryRepoAPI.CategoryRepository(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
             );
             var token = CancellationToken.None;
-            var categories = Enumerable
-                .Range(1, 100)
-                .Select(i => new Category()
-                {
-                    Id = i,
-                    Name = $"TestCategory {i}",
-                    UserId = i,
-                });
-            await _dbcontext.Categories.AddRangeAsync(categories);
-            await _dbcontext.SaveChangesAsync();
-
             var category = _dbcontext.Categories.Last();
 
             //Act
@@ -52,24 +40,12 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task FindUserCategory_WhenUserIdAmongMultipleUsersAndCategoryNameExist_ReturnsMiddleCategory()
         {
             //Arrange
-            await ResetDb(0);
+            var categories = await ResetDb<Category>(100);
 
             var repo = new CategpryRepoAPI.CategoryRepository(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
             );
-
-            var categories = Enumerable
-                .Range(1, 100)
-                .Select(i => new Category()
-                {
-                    Id = i,
-                    Name = $"TestCategory {i}",
-                    UserId = i,
-                });
-
-            await _dbcontext.Categories.AddRangeAsync(categories);
-            await _dbcontext.SaveChangesAsync();
 
             var category = _dbcontext.Categories.Skip(categories.Count() / 2).Take(1).First();
             var token = CancellationToken.None;
@@ -88,23 +64,12 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task FindUserCategory_WhenUserIdNotExistsAndCategoryNameExist_ReturnsNull()
         {
             //Arrange
-            await ResetDb(0);
+            var categories = await ResetDb<Category>(100);
 
             var repo = new CategpryRepoAPI.CategoryRepository(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
             );
-            var categories = Enumerable
-                .Range(1, 100)
-                .Select(i => new Category()
-                {
-                    Id = i,
-                    Name = $"TestCategory {i}",
-                    UserId = i,
-                });
-
-            await _dbcontext.Categories.AddRangeAsync(categories);
-            await _dbcontext.SaveChangesAsync();
 
             var category = new Category() { UserId = 500, Name = "TestCategory 50" };
             var token = CancellationToken.None;
@@ -121,23 +86,12 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task FindUserCategory_WhenUserIdExistsAndCategoryNameNot_ReturnsNull()
         {
             //Arrange
-            await ResetDb(0);
+            await ResetDb<Category>(100);
 
             var repo = new CategpryRepoAPI.CategoryRepository(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
             );
-
-            var categories = Enumerable
-                .Range(1, 100)
-                .Select(i => new Category()
-                {
-                    Name = $"TestCategory {i}",
-                    UserId = i,
-                    Id = i,
-                });
-            await _dbcontext.Categories.AddRangeAsync(categories);
-            await _dbcontext.SaveChangesAsync();
 
             var category = new Category() { UserId = 50, Name = "TestCategory 500" };
             var token = CancellationToken.None;
@@ -153,7 +107,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task FindUserCategory_WhenCanceledByTheUser_ThrowsOperationCanceledException()
         {
             // Arrange
-            await ResetDb(0);
+            await ResetDb<Category>(0);
 
             var repo = new CategpryRepoAPI.CategoryRepository(
                 _dbcontext,
@@ -183,7 +137,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task FindUserCategory_WhenGenericExceptionOccurs_ThrowsException()
         {
             // Arrange
-            await ResetDb(0);
+            await ResetDb<Category>(0);
 
             var message = "Simuiltaed exception";
             var repo = new CategpryRepoAPI.CategoryRepository(

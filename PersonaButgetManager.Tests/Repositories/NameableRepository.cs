@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using PersonaButgetManager.Tests.Common.Entities;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.Repositories;
@@ -11,7 +10,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetByNameAsync_WhenNameExists_ReturnsEntity()
         {
             // Arrange
-            var newEntities = await ResetDb(10000);
+            var newEntities = await ResetDb<TestEntity>(10000);
             var repo = new NameableRepository<TestEntity>(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
@@ -33,7 +32,7 @@ namespace PersonaButgetManager.Tests.Repositories
         public async Task GetByNameAsync_WhenNameNotExists_ReturnsNull()
         {
             //Arrange
-            await ResetDb(10000);
+            await ResetDb<TestEntity>(10000);
             var repo = new NameableRepository<TestEntity>(
                 _dbcontext,
                 DelegatestrategyFactory.NoOpStrategy()
