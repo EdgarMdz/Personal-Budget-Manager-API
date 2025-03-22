@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using CategpryRepoAPI = PersonalBudgetManager.Api.Repositories;
@@ -176,6 +177,31 @@ namespace PersonaButgetManager.Tests.Repositories
             );
 
             Assert.NotNull(ex);
+        }
+
+        [Fact]
+        public async Task FindUserCategory_WhenGenericExceptionOccurs_ThrowsException()
+        {
+            // Arrange
+            await ResetDb(0);
+
+            var message = "Simuiltaed exception";
+            var repo = new CategpryRepoAPI.CategoryRepository(
+                _dbcontext,
+                DelegatestrategyFactory.ExceptionStrategy(message)
+            );
+
+            var token = CancellationToken.None;
+            var categoryName = "TestCategory 50";
+            var userId = 50;
+
+            //Act and assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                async () => await repo.FindUserCategory(userId, categoryName, token)
+            );
+
+            Assert.NotNull(ex);
+            Assert.Contains(message, ex.Message);
         }
     }
 }
