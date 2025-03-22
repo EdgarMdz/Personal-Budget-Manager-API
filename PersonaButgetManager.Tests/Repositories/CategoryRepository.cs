@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using CategpryRepoAPI = PersonalBudgetManager.Api.Repositories;
@@ -156,6 +158,57 @@ namespace PersonaButgetManager.Tests.Repositories
 
             Assert.NotNull(ex);
             Assert.Contains(message, ex.Message);
+        }
+
+        [Fact]
+        public async Task GetCategoriesForUser_WhenUserExistAndHasCategories_ReturnsCategories()
+        {
+            // Arrange
+            var token = CancellationToken.None;
+            var userid = 50;
+
+            var categories = await ResetDb<Category>(100);
+            var extraCategories = Enumerable
+                .Range(1, 5)
+                .Select(i => new Category()
+                {
+                    UserId = userid,
+                    Name = $"TestCategory {categories.Count() + i}",
+                    Id = categories.Count() + i,
+                });
+
+            await _dbcontext.Categories.AddRangeAsync(extraCategories);
+            await _dbcontext.SaveChangesAsync();
+
+            var expectedCategories = categories
+                .Where(C => C.UserId == userid)
+                .Concat(extraCategories);
+
+            var repo = new CategpryRepoAPI.CategoryRepository(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            //Act
+            var result = await repo.GetCategoriesForUser(userid, token);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedCategories.Count(), result.Count());
+
+            Assert.All(
+                result,
+                category =>
+                {
+                    var matchingCategory = expectedCategories.FirstOrDefault(c =>
+                        c.Id == category.Id
+                    );
+
+                    Assert.NotNull(matchingCategory);
+                    Assert.Equal(userid, category.UserId);
+                    Assert.Contains(category.Name, matchingCategory.Name);
+                }
+            );
         }
     }
 }
