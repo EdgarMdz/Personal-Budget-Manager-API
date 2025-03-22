@@ -20,7 +20,7 @@ namespace PersonaButgetManager.Tests.Repositories
                 DelegatestrategyFactory.NoOpStrategy()
             );
             var token = CancellationToken.None;
-            var category = _dbcontext.Categories.Last();
+            var category = categories.Last();
 
             //Act
             var result = await _categoryRepository.FindUserCategory(
