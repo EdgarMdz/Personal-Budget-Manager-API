@@ -251,5 +251,27 @@ namespace PersonaButgetManager.Tests.Repositories
                 async () => await repo.GetCategoriesForUser(userId, toke)
             );
         }
+
+        [Fact]
+        public async Task GetCategoriesForUser_WhenGenericExceptionOccurs_ThrowException()
+        {
+            // Arrage
+            await ResetDb<Category>(0);
+
+            var exceptionMessage = "Simulated exception";
+            var repo = new CategpryRepoAPI.CategoryRepository(
+                _dbcontext,
+                DelegatestrategyFactory.ExceptionStrategy(exceptionMessage)
+            );
+            var token = CancellationToken.None;
+            var userId = 50;
+
+            //Act and assert
+
+            var ex = await Assert.ThrowsAsync<Exception>(
+                async () => await repo.GetCategoriesForUser(userId, token)
+            );
+            Assert.Contains(exceptionMessage, ex.Message);
+        }
     }
 }
