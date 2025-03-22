@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration.UserSecrets;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using CategpryRepoAPI = PersonalBudgetManager.Api.Repositories;
@@ -230,6 +228,28 @@ namespace PersonaButgetManager.Tests.Repositories
             //Assert
             Assert.NotNull(result);
             Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetCategoriesForUser_WhenCanceledByUser_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            await ResetDb<Category>(0);
+
+            var repo = new CategpryRepoAPI.CategoryRepository(
+                _dbcontext,
+                DelegatestrategyFactory.DelayStrategy(5000)
+            );
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            var toke = cancellationTokenSource.Token;
+            var userId = 50;
+
+            // Act and assert
+            cancellationTokenSource.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await repo.GetCategoriesForUser(userId, toke)
+            );
         }
     }
 }
