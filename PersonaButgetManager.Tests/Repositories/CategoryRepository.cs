@@ -210,5 +210,26 @@ namespace PersonaButgetManager.Tests.Repositories
                 }
             );
         }
+
+        [Fact]
+        public async Task GetCategoriesForUser_WhenUserIdNotExist_ReturnsNull()
+        {
+            // Arrange
+            await ResetDb<Category>(100);
+            var userid = 500;
+            var token = CancellationToken.None;
+
+            var repo = new CategpryRepoAPI.CategoryRepository(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            //Act
+            var result = await repo.GetCategoriesForUser(userid, token);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
     }
 }
