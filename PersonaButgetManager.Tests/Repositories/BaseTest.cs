@@ -20,35 +20,25 @@ namespace PersonaButgetManager.Tests.Repositories
         }
 
         protected async Task<IEnumerable<T>> ResetDb<T>(int numberOfEntities)
+            where T : class
         {
             ArgumentOutOfRangeException.ThrowIfNegative(numberOfEntities, nameof(numberOfEntities));
 
             await _dbcontext.Database.EnsureDeletedAsync();
             await _dbcontext.Database.EnsureCreatedAsync();
-
-            IEnumerable<T> entities;
-
-            switch (typeof(T).Name)
+            IEnumerable<T> entities = typeof(T).Name switch
             {
-                case nameof(TestEntity):
-                    entities =
-                        TestEntityRecordsFactory.CreateTestEntities(numberOfEntities)
-                            as IEnumerable<T>
-                        ?? [];
-                    await _dbcontext.TestEntities.AddRangeAsync(entities.Cast<TestEntity>());
-                    break;
-                case nameof(Category):
-                    entities =
-                        TestEntityRecordsFactory.CreateCategories(numberOfEntities)
-                            as IEnumerable<T>
-                        ?? [];
-                    await _dbcontext.Categories.AddRangeAsync(entities.Cast<Category>());
-                    break;
-                default:
-                    throw new ArgumentException("Invalid entity type");
-            }
+                nameof(TestEntity) => TestEntityRecordsFactory.CreateTestEntities(numberOfEntities)
+                    as IEnumerable<T>
+                    ?? [],
+                nameof(Category) => TestEntityRecordsFactory.CreateCategories(numberOfEntities)
+                    as IEnumerable<T>
+                    ?? [],
+                _ => throw new ArgumentException("Invalid entity type"),
+            };
             ;
 
+            await _dbcontext.Set<T>().AddRangeAsync(entities);
             await _dbcontext.SaveChangesAsync();
 
             return entities;
