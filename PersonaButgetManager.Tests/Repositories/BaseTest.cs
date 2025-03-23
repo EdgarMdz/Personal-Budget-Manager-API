@@ -14,6 +14,7 @@ namespace PersonaButgetManager.Tests.Repositories
             {
                 { typeof(TestEntity), TestEntityRecordsFactory.CreateTestEntities },
                 { typeof(Category), TestEntityRecordsFactory.CreateCategories },
+                { typeof(Expense), TestEntityRecordsFactory.CreateExpenses },
             };
 
         public BaseTest() => _dbcontext = new TestDBContext();

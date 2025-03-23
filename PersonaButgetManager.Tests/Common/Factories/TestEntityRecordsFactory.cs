@@ -19,5 +19,18 @@ namespace PersonaButgetManager.Tests.Common.Factories
                     Id = i,
                     UserId = i,
                 });
+
+        public static IEnumerable<Expense> CreateExpenses(int numberOfCategories) =>
+            Enumerable
+                .Range(1, numberOfCategories)
+                .Select(i => new Expense()
+                {
+                    Id = i,
+                    UserId = i,
+                    Date = DateTime.UtcNow,
+                    Amount = i,
+                    Description = $"Expense {i}",
+                    CategoryId = i,
+                });
     }
 }
