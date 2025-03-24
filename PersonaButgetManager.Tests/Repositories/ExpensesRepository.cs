@@ -1,3 +1,4 @@
+using System.Globalization;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using ExpenseAPIRepo = PersonalBudgetManager.Api.Repositories;
@@ -15,12 +16,12 @@ namespace PersonaButgetManager.Tests.Repositories
             var entities = await ResetDb<Expense>(100);
 
             // updating date
-            var ent = entities.First(e => e.UserId == userid);
-            ent.Date = date;
+            var expense = entities.First(income => income.UserId == userid);
+            expense.Date = date;
+
             await _dbcontext.SaveChangesAsync();
 
-            //adding more expenses
-            var extraEntities = Enumerable
+            var extraExpenses = Enumerable
                 .Range(101, 5)
                 .Select(i => new Expense()
                 {
@@ -28,14 +29,13 @@ namespace PersonaButgetManager.Tests.Repositories
                     UserId = userid,
                     Date = date,
                     Amount = i,
-                    Description = $"Expense test {i}",
+                    Description = $"Expense {i}",
                     CategoryId = i,
                 });
-
-            await _dbcontext.Expenses.AddRangeAsync(extraEntities);
+            await _dbcontext.Expenses.AddRangeAsync(extraExpenses);
             await _dbcontext.SaveChangesAsync();
 
-            var expectedExpenses = extraEntities.Append(ent);
+            var expectedExpenses = extraExpenses.Append(expense);
 
             var token = CancellationToken.None;
 
@@ -63,8 +63,14 @@ namespace PersonaButgetManager.Tests.Repositories
                     Assert.Equal(expectedExpense.Amount, actualExpense.Amount);
                     Assert.Equal(expectedExpense.Description, actualExpense.Description);
                     Assert.Equal(
-                        expectedExpense.Date.ToString("yyyy-MM-dd HH:mm:ss"),
-                        actualExpense.Date.ToString("yyyy-MM-dd HH:mm:ss")
+                        expectedExpense.Date.ToString(
+                            "yyyy-MM-dd HH:mm:ss",
+                            CultureInfo.InvariantCulture
+                        ),
+                        actualExpense.Date.ToString(
+                            "yyyy-MM-dd HH:mm:ss",
+                            CultureInfo.InvariantCulture
+                        )
                     );
                 }
             );
