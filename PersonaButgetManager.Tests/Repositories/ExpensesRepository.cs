@@ -134,5 +134,25 @@ namespace PersonaButgetManager.Tests.Repositories
             );
             Assert.Contains(exceptionMessage, ex.Message);
         }
+
+        [Fact]
+        public async Task GetExpensesForUser_WhenGenericExceptionOccurs_ThrowsException()
+        {
+            // Arrange
+            var exceptionMessage = "Simulated exception";
+            var userId = 12;
+            var token = CancellationToken.None;
+            await ResetDb<Expense>(0);
+            var repo = new ExpenseAPIRepo.ExpensesRepository(
+                _dbcontext,
+                DelegatestrategyFactory.ExceptionStrategy(exceptionMessage)
+            );
+
+            // Act and assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                async () => await repo.GetExpensesForUser(userId, token)
+            );
+            Assert.Contains(exceptionMessage, ex.Message);
+        }
     }
 }
