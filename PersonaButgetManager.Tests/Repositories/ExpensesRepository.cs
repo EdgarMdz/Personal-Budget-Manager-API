@@ -91,5 +91,28 @@ namespace PersonaButgetManager.Tests.Repositories
             Assert.NotNull(result);
             Assert.Empty(result);
         }
+
+        [Fact]
+        public async Task GetExpensesForUser_WhenCanceledByTheUser_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            await ResetDb<Expense>(0);
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+            var userId = 40;
+            var repo = new ExpenseAPIRepo.ExpensesRepository(
+                _dbcontext,
+                DelegatestrategyFactory.DelayStrategy(5000)
+            );
+
+            // Act
+            cancellationTokenSource.Cancel();
+
+            // Assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await repo.GetExpensesForUser(userId, token)
+            );
+        }
     }
 }
