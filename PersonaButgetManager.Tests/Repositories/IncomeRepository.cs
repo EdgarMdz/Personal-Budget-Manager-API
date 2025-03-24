@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.DataContext.Entities;
@@ -61,8 +62,14 @@ namespace PersonaButgetManager.Tests.Repositories
                     Assert.Equal(expectedIncome.Description, actualIncome.Description);
                     Assert.Equal(expectedIncome.CategoryId, actualIncome.CategoryId);
                     Assert.Equal(
-                        expectedIncome.Date.ToString("yyyy:MM:dd HH:mm:ss"),
-                        actualIncome.Date.ToString("yyyy:MM:dd HH:mm:ss")
+                        expectedIncome.Date.ToString(
+                            "yyyy-MM-dd HH:mm:ss",
+                            CultureInfo.InvariantCulture
+                        ),
+                        actualIncome.Date.ToString(
+                            "yyyy-MM-dd HH:mm:ss",
+                            CultureInfo.InvariantCulture
+                        )
                     );
                 }
             );
