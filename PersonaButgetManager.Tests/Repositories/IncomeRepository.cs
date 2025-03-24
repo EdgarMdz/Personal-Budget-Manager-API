@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Reflection;
 using PersonaButgetManager.Tests.Common.Factories;
 using PersonalBudgetManager.Api.DataContext.Entities;
 using IncomeAPIRepo = PersonalBudgetManager.Api.Repositories.IncomeRepository;
@@ -73,6 +72,23 @@ namespace PersonaButgetManager.Tests.Repositories
                     );
                 }
             );
+        }
+
+        [Fact]
+        public async Task GetIncomesForUser_WhenUserHasNoIncomes_ReturnsEmpty()
+        {
+            // Arrange
+            await ResetDb<Income>(100);
+            var repo = new IncomeAPIRepo(_dbcontext, DelegatestrategyFactory.NoOpStrategy());
+
+            var userId = 200;
+            var token = CancellationToken.None;
+            // Act
+            var result = await repo.GetIncomesForUser(userId, token);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }
