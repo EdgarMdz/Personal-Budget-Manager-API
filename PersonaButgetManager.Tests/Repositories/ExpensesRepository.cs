@@ -7,19 +7,19 @@ namespace PersonaButgetManager.Tests.Repositories
     public class ExpensesRepository : BaseTest
     {
         [Fact]
-        public async Task GetExpensesForUser_WhenUserExistAndHaveRecords_ReturnsEntities()
+        public async Task GetExpensesForUser_WhenUserExistAndHasRecords_ReturnsEntities()
         {
             // Arrange
             int userid = 50;
             DateTime date = DateTime.UtcNow;
             var entities = await ResetDb<Expense>(100);
 
-            // Actualizar la fecha de un gasto existente
+            // updating date
             var ent = entities.First(e => e.UserId == userid);
             ent.Date = date;
             await _dbcontext.SaveChangesAsync();
 
-            // Crear nuevos gastos
+            //adding more expenses
             var extraEntities = Enumerable
                 .Range(101, 5)
                 .Select(i => new Expense()
@@ -62,8 +62,6 @@ namespace PersonaButgetManager.Tests.Repositories
                     Assert.Equal(expectedExpense.UserId, actualExpense.UserId);
                     Assert.Equal(expectedExpense.Amount, actualExpense.Amount);
                     Assert.Equal(expectedExpense.Description, actualExpense.Description);
-
-                    // Comparación de fechas segura
                     Assert.Equal(
                         expectedExpense.Date.ToString("yyyy-MM-dd HH:mm:ss"),
                         actualExpense.Date.ToString("yyyy-MM-dd HH:mm:ss")
