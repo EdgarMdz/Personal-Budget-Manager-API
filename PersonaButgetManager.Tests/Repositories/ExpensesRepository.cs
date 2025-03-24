@@ -7,7 +7,7 @@ namespace PersonaButgetManager.Tests.Repositories
     public class ExpensesRepository : BaseTest
     {
         [Fact]
-        public async Task GetExpensesForUser_WhenUserExistAndHasRecords_ReturnsEntities()
+        public async Task GetExpensesForUser_WhenUserExistAndHasExpenses_ReturnsEntities()
         {
             // Arrange
             int userid = 50;
@@ -68,6 +68,28 @@ namespace PersonaButgetManager.Tests.Repositories
                     );
                 }
             );
+        }
+
+        [Fact]
+        public async Task GetExpensesForUser_WhenUserExistAndHasNoExpenses_ReturnsEntities()
+        {
+            // Given
+            await ResetDb<Expense>(100);
+
+            var repo = new ExpenseAPIRepo.ExpensesRepository(
+                _dbcontext,
+                DelegatestrategyFactory.NoOpStrategy()
+            );
+
+            var token = CancellationToken.None;
+            var userId = 400;
+
+            // When
+            var result = await repo.GetExpensesForUser(userId, token);
+
+            // Then
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }
