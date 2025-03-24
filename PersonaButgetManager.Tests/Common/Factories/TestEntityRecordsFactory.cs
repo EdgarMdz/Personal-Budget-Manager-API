@@ -20,9 +20,9 @@ namespace PersonaButgetManager.Tests.Common.Factories
                     UserId = i,
                 });
 
-        public static IEnumerable<Expense> CreateExpenses(int numberOfCategories) =>
+        public static IEnumerable<Expense> CreateExpenses(int numberOfExpenses) =>
             Enumerable
-                .Range(1, numberOfCategories)
+                .Range(1, numberOfExpenses)
                 .Select(i => new Expense()
                 {
                     Id = i,
@@ -30,6 +30,19 @@ namespace PersonaButgetManager.Tests.Common.Factories
                     Date = DateTime.UtcNow,
                     Amount = i,
                     Description = $"Expense {i}",
+                    CategoryId = i,
+                });
+
+        public static IEnumerable<Income> CreateIncomes(int numberOfIncomes) =>
+            Enumerable
+                .Range(1, numberOfIncomes)
+                .Select(i => new Income()
+                {
+                    Id = i,
+                    UserId = i,
+                    Date = DateTime.UtcNow,
+                    Amount = i,
+                    Description = $"Income {i}",
                     CategoryId = i,
                 });
     }

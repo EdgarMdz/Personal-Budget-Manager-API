@@ -17,6 +17,7 @@ namespace PersonaButgetManager.Tests.Common.Data
         public DbSet<TestEntity> TestEntities { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Expense> Expenses { get; set; }
+        public DbSet<Income> Incomes { get; set; }
         public DbSet<User> Users { get; set; }
     }
 }
