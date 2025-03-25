@@ -63,14 +63,12 @@ namespace PersonaButgetManager.Tests.Repositories
                     Assert.Equal(expectedExpense.Amount, actualExpense.Amount);
                     Assert.Equal(expectedExpense.Description, actualExpense.Description);
                     Assert.Equal(
-                        expectedExpense.Date.ToString(
-                            "yyyy-MM-dd HH:mm:ss",
-                            CultureInfo.InvariantCulture
-                        ),
-                        actualExpense.Date.ToString(
-                            "yyyy-MM-dd HH:mm:ss",
-                            CultureInfo.InvariantCulture
-                        )
+                        expectedExpense
+                            .Date.ToUniversalTime()
+                            .ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        actualExpense
+                            .Date.ToUniversalTime()
+                            .ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
                     );
                 }
             );
